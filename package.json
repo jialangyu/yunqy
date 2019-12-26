@@ -71,7 +71,7 @@
     "vux": "^2.9.4",
     "vux-loader": "^1.2.9",
     "webpack": "3.10.0",
-    "webpack-bundle-analyzer": "2.9.1",
+    "webpack-bundle-analyzer": "3.6.0",
     "webpack-dev-server": "2.9.7",
     "webpack-merge": "4.1.1",
     "yaml-loader": "^0.5.0"
