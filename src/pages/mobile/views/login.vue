@@ -21,15 +21,18 @@
           <x-button type="primary" :disabled="sureDisable()" :show-loading="loading" @click.native.prevent="handleLogin">登录</x-button>
         </div>
       </div>
+      <footer-bar></footer-bar>
     </div>
 </template>
 <script>
 import { XInput, Cell } from 'vux'
+import { FooterBar } from '@/pages/index/views/layout/components'
 
 export default {
   components: {
     XInput,
-    Cell
+    Cell,
+    FooterBar
   },
   data () {
     return {
@@ -150,6 +153,9 @@ export default {
         color: rgba(110, 132, 241, 0.6);
       }
     }
+  }
+  .footer-wrapper{
+    bottom: 0.5em;
   }
 }
 </style>

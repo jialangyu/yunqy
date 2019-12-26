@@ -27,12 +27,17 @@
         <span> password: admin</span>
       </div> -->
     </el-form>
+    <footer-bar></footer-bar>
   </div>
 </template>
 
 <script>
+import { FooterBar } from '@/pages/index/views/layout/components'
 export default {
   name: 'login',
+  components: {
+    FooterBar
+  },
   data() {
     var validPhone = (rule, value, callback) => {
       const reg = /^1[3|4|5|7|8][0-9]\d{8}$/
