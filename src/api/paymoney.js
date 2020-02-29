@@ -68,6 +68,13 @@ export default {
       method: 'get'
     })
   },
+  // 按照年份统计消费
+  findSumByYear: function(groupid, year) {
+    return request({
+      url: `/paymoney/findListSumCountByYear/${groupid}/${year}`,
+      method: 'get'
+    })
+  },
 
   searchOwner: function(data) {
     return request({
@@ -119,6 +126,13 @@ export default {
   findSumCountByTypeOwner: function(userid, typeid) {
     return request({
       url: `/indivpaymoney/sum/${userid}/${typeid}`,
+      method: 'get'
+    })
+  },
+  // 按照年份统计消费
+  findSumByYearOwner: function(userid, year) {
+    return request({
+      url: `/indivpaymoney/findListSumCountByYear/${userid}/${year}`,
       method: 'get'
     })
   }

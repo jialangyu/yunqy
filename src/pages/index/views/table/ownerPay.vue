@@ -6,11 +6,11 @@
                 <div class="chart-wrapper" v-if="tabItem==='1'">
                     <h4>
                         按月份统计
-                        <el-date-picker style="width: 90px"
-                            v-model="selectedYear" type="year" size="mini">
+                        <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
+                            type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
                         </el-date-picker> 年
                     </h4>
-                    <pie-chart :pieData="pieDataOwner" v-if="sumCount"></pie-chart>
+                    <bar-chart :barData="barDataOwner" v-if="sumCount"></bar-chart>
                     <h4>按分类统计</h4>
                     <pie-chart :pieData="pieDataOwner" v-if="sumCount"></pie-chart>
                 </div>
@@ -117,16 +117,27 @@
 <script>
 import paymoneyApi from "@/api/paymoney"
 import PieChart from '@/components/ECharts/PieChart'
+import BarChart from '@/components/ECharts/BarChart'
 
 export default {
     data() {
         return {
             tabItem: '1',
+            pickerOptions: {
+                disabledDate(time) { 
+                    return time.getTime() > Date.now()
+                } 
+            },
             pieDataOwner: {
-                topic: '个人缴费',
+                topic: '个人消费',
                 sum: 0,
                 tit: [],
                 sData: []
+            },
+            barDataOwner: {
+                topic: '本年度总消费',
+                xData: [],
+                yData: []
             },
             list:null,
             searchTypeid: '',
@@ -141,11 +152,12 @@ export default {
             size:10,
             total:0,
             sumCount:0,
-            selectedYear: ''
+            selectedYear: new Date()
         }
     },
     components: {
-        PieChart
+        PieChart,
+        BarChart
     },
     computed: {
         userList() {
@@ -162,8 +174,8 @@ export default {
         }
     },
     created() {
-        this.selectedYear = new Date().getYear()
         this.search()
+        this.getSumCountOwner()
         this.getOwnerAllCosts()
     },
     methods: {
@@ -233,6 +245,18 @@ export default {
         currentPageSize(val){
             this.size = val
             this.search()
+        },
+        changedYear(val) {
+            this.getSumCountOwner()
+        },
+        getSumCountOwner() {
+            const year = this.selectedYear.getFullYear()
+            paymoneyApi.findSumByYearOwner(this.UID, year).then(response => {
+               if (response.flag && response.data) {
+                    this.barDataOwner.xData = Object.keys(response.data)
+                    this.barDataOwner.yData = Object.values(response.data)
+                } 
+            })
         },
         async getOwnerAllCosts() {
             var titArr = []

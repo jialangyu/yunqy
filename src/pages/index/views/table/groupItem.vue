@@ -4,7 +4,15 @@
             <el-tab-pane name="1" lazy>
                 <span slot="label"><i class="el-icon-time"></i> 统计</span>
                 <div class="chart-wrapper" v-if="tabItem==='1'">
-                    <pie-chart :pieData="pieDataGroup" v-if ="sumCount"></pie-chart>
+                    <h4>
+                        按月份统计
+                        <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
+                            type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
+                        </el-date-picker> 年
+                    </h4>
+                    <bar-chart :barData="barDataGroup"></bar-chart>
+                    <h4>按分类统计</h4>
+                    <pie-chart :pieData="pieDataGroup" v-if="sumCount"></pie-chart>
                 </div>
             </el-tab-pane>
             <el-tab-pane name="2">
@@ -133,19 +141,30 @@
 import paymoneyApi from "@/api/paymoney"
 import groupApi from "@/api/group"
 import PieChart from '@/components/ECharts/PieChart'
+import BarChart from '@/components/ECharts/BarChart'
 import { arrToStr, strToArr } from '@/utils'
 
 export default {
     data() {
         return {
             tabItem: '1',
+            pickerOptions: {
+                disabledDate(time) { 
+                    return time.getTime() > Date.now()
+                } 
+            },
             groupid: '',
             pieDataGroup: {
-                topic: '当前群组缴费',
-                subTopic: '本人均摊缴费： ￥0',
+                topic: '当前群组消费',
+                subTopic: '本人均摊消费： ￥0',
                 sum: 0,
                 tit: [],
                 sData: []
+            },
+            barDataGroup: {
+                topic: '本年度总消费',
+                xData: [],
+                yData: []
             },
             list:null,
             searchMap:{
@@ -164,11 +183,13 @@ export default {
             size:10,
             total:0,
             sumCount:0,
-            ptUserArr: []
+            ptUserArr: [],
+            selectedYear: new Date()
         }
     },
     components: {
-        PieChart
+        PieChart,
+        BarChart
     },
     computed: {
         // userList() {
@@ -191,6 +212,7 @@ export default {
         if (this.$route.query.id) {
             this.groupid = this.$route.query.id
             this.search()
+            this.getSumCount()
             this.findAllUserById()
             this.getGroupAllCosts()
         }
@@ -300,6 +322,18 @@ export default {
         },
         clickable(row) {
             return this.roles.indexOf('0')>-1 && this.UID!==row.payuserid
+        },
+        changedYear(val) {
+            this.getSumCount()
+        },
+        getSumCount() {
+            const year = this.selectedYear.getFullYear()
+            paymoneyApi.findSumByYear(this.groupid, year).then(response => {
+               if (response.flag && response.data) {
+                    this.barDataGroup.xData = Object.keys(response.data)
+                    this.barDataGroup.yData = Object.values(response.data)
+                } 
+            })
         },
         async getGroupAllCosts() {
             var titArr = []
