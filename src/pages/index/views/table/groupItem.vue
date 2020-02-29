@@ -1,122 +1,131 @@
 <template>
     <div>
-        <div class="chart-wrapper" v-if ="sumCount">
-          <pie-chart :pieData="pieDataGroup"></pie-chart>
-        </div>
-        <el-form :inline="true" class="demo-form-inline">
-            <el-form-item>
-                <el-select clearable v-model="searchMap.typeid" placeholder="请选择缴费类型">
-                    <el-option v-for="item in typeList" :key="item.id"
-                               :label="item.typename" :value="item.id">
-                    </el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item>
-                <el-select clearable v-model="searchMap.payuserid" placeholder="请选择缴费人">
-                    <el-option v-for="item in userListGroup" :key="item.id"
-                                :label="item.username" :value="item.id">
-                    </el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item>
-                <el-date-picker clearable
-                    v-model="searchMap.rangeTime"
-                    type="daterange"
-                    range-separator="至"
-                    start-placeholder="开始日期"
-                    end-placeholder="结束日期"
-                    value-format="yyyy-MM-dd"
-                    @change="changeFun">
-                </el-date-picker>
-            </el-form-item>
-             <el-form-item >
-                <el-button type="primary" @click="search()">查询</el-button>
-            </el-form-item>
-            
-            <el-form-item >
-                <el-button type="primary" @click="dialogFormVisible = true;pojo={};id=null">新增</el-button>
-            </el-form-item>
-        </el-form>
-        <el-table :data="list">
-            <el-table-column prop="typeid" label="缴费类型">
-                <template slot-scope="scope">
-                    {{scope.row.typeid | typeInfo}}
-                </template>
-            </el-table-column>
-            <el-table-column prop="paycount" label="缴费总额"></el-table-column>
-            <el-table-column prop="payuserid" label="缴费人">
-                <template slot-scope="scope">
-                    {{scope.row.payuserid | uInfo}}
-                </template>
-            </el-table-column>
-            <el-table-column prop="shareuserid" label="平摊人">
-                <template slot-scope="scope">
-                    {{scope.row.shareuserid | uInfo}}
-                </template>
-            </el-table-column>
-            <el-table-column prop="sharemoney" label="均摊金额"></el-table-column>
-            <el-table-column prop="paytime" label="缴费日期"></el-table-column>
-            <el-table-column prop="remark" label="缴费备注"></el-table-column>
-            <el-table-column fixed="right" label="操作" align="center" width="150">
-                <template slot-scope="scope">
-                    <el-button @click="findById(scope.row.id)" type="primary" size="mini" :disabled="clickable(scope.row)">修改</el-button>
-                    <el-button @click="deleteById(scope.row.id)" type="danger" size="mini" :disabled="clickable(scope.row)">删除</el-button>
-                </template>
-            </el-table-column>
-        </el-table>
+        <el-tabs type="border-card" v-model="tabItem">
+            <el-tab-pane name="1" lazy>
+                <span slot="label"><i class="el-icon-time"></i> 统计</span>
+                <div class="chart-wrapper" v-if="tabItem==='1'">
+                    <pie-chart :pieData="pieDataGroup" v-if ="sumCount"></pie-chart>
+                </div>
+            </el-tab-pane>
+            <el-tab-pane name="2">
+                <span slot="label"><i class="el-icon-tickets"></i> 账单明细</span>
+                <el-form :inline="true" class="demo-form-inline">
+                    <el-form-item>
+                        <el-select clearable v-model="searchMap.typeid" placeholder="请选择缴费类型" size="small">
+                            <el-option v-for="item in typeList" :key="item.id"
+                                    :label="item.typename" :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-select clearable v-model="searchMap.payuserid" placeholder="请选择缴费人" size="small">
+                            <el-option v-for="item in userListGroup" :key="item.id"
+                                        :label="item.username" :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-date-picker clearable
+                            v-model="searchMap.rangeTime"
+                            size="small"
+                            type="daterange"
+                            range-separator="至"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            value-format="yyyy-MM-dd"
+                            @change="changeFun">
+                        </el-date-picker>
+                    </el-form-item>
+                    <el-form-item >
+                        <el-button type="primary" @click="search()" size="small">查询</el-button>
+                    </el-form-item>
+                    
+                    <el-form-item >
+                        <el-button type="primary" size="small" @click="dialogFormVisible = true;pojo={};id=null">新增</el-button>
+                    </el-form-item>
+                </el-form>
+                <el-table :data="list">
+                    <el-table-column prop="typeid" label="缴费类型">
+                        <template slot-scope="scope">
+                            {{scope.row.typeid | typeInfo}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="paycount" label="缴费总额"></el-table-column>
+                    <el-table-column prop="payuserid" label="缴费人">
+                        <template slot-scope="scope">
+                            {{scope.row.payuserid | uInfo}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="shareuserid" label="平摊人">
+                        <template slot-scope="scope">
+                            {{scope.row.shareuserid | uInfo}}
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="sharemoney" label="均摊金额"></el-table-column>
+                    <el-table-column prop="paytime" label="缴费日期"></el-table-column>
+                    <el-table-column prop="remark" label="缴费备注"></el-table-column>
+                    <el-table-column fixed="right" label="操作" align="center" width="150">
+                        <template slot-scope="scope">
+                            <el-button @click="findById(scope.row.id)" type="primary" size="mini" :disabled="clickable(scope.row)">修改</el-button>
+                            <el-button @click="deleteById(scope.row.id)" type="danger" size="mini" :disabled="clickable(scope.row)">删除</el-button>
+                        </template>
+                    </el-table-column>
+                </el-table>
 
-        <el-pagination @size-change="currentPageSize" @current-change="search"
-                    :current-page.sync="page" :page-sizes="[5, 10, 20, 30]"
-                    :page-size="size" layout="total, sizes, prev, pager, next" :total="total">
-        </el-pagination>
+                <el-pagination @size-change="currentPageSize" @current-change="search"
+                            :current-page.sync="page" :page-sizes="[5, 10, 20, 30]"
+                            :page-size="size" layout="total, sizes, prev, pager, next" :total="total">
+                </el-pagination>
 
-        <el-dialog title="新增缴费" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
-        <el-form label-width="100px">
-            <el-form-item label="缴费类型" >
-                <el-select v-model="pojo.typeid" placeholder="请选择">
-                    <!--v-for: 循环迭代 
-                        :label : 对应的数据里存放城市的属性名称,这里是name
-                        :value : 存放城市的id
-                        :key : 也是对应的id
-                    -->
-                    <el-option v-for="item in typeList" :key="item.id"
-                                :label="item.typename" :value="item.id">
-                    </el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="缴费人" >{{UName}}</el-form-item>
-            <el-form-item label="缴费日期" >
-                <el-date-picker
-                    v-model="pojo.paytime"
-                    type="date"
-                    :editable="false"
-                    placeholder="选择缴费日期"
-                    value-format="yyyy-MM-dd">
-                </el-date-picker>
-            </el-form-item>
-            <el-form-item label="缴费金额" >
-                <el-input v-model="pojo.paycount" @change="changePtAllCostFun"></el-input>
-            </el-form-item>
-            <el-form-item label="平摊人" >
-                <el-select v-model="ptUserArr" multiple placeholder="请选择"
-                    @change="changePtUserFun">
-                    <el-option v-for="item in userListGroup" :key="item.id"
-                                :label="item.username" :value="item.id" :disabled="item.id===UID">
-                    </el-option>
-                </el-select>
-            </el-form-item>
-            <el-form-item label="均摊金额" >
-                <el-input v-model="pojo.sharemoney" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="备注" >
-                <el-input v-model="pojo.remark" auto-complete="off"></el-input>
-            </el-form-item>
-        </el-form>
-        <div slot="footer" class="dialog-footer">
-            <el-button @click="dialogFormVisible = false">取 消</el-button>
-            <el-button type="primary" @click="saveOrUpdate()">确 定</el-button>
-        </div>
-    </el-dialog>
+                <el-dialog title="新增缴费" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
+                    <el-form label-width="100px">
+                        <el-form-item label="缴费类型" >
+                            <el-select v-model="pojo.typeid" placeholder="请选择">
+                                <!--v-for: 循环迭代 
+                                    :label : 对应的数据里存放城市的属性名称,这里是name
+                                    :value : 存放城市的id
+                                    :key : 也是对应的id
+                                -->
+                                <el-option v-for="item in typeList" :key="item.id"
+                                            :label="item.typename" :value="item.id">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="缴费人" >{{UName}}</el-form-item>
+                        <el-form-item label="缴费日期" >
+                            <el-date-picker
+                                v-model="pojo.paytime"
+                                type="date"
+                                :editable="false"
+                                placeholder="选择缴费日期"
+                                value-format="yyyy-MM-dd">
+                            </el-date-picker>
+                        </el-form-item>
+                        <el-form-item label="缴费金额" >
+                            <el-input v-model="pojo.paycount" @change="changePtAllCostFun"></el-input>
+                        </el-form-item>
+                        <el-form-item label="平摊人" >
+                            <el-select v-model="ptUserArr" multiple placeholder="请选择"
+                                @change="changePtUserFun">
+                                <el-option v-for="item in userListGroup" :key="item.id"
+                                            :label="item.username" :value="item.id" :disabled="item.id===UID">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="均摊金额" >
+                            <el-input v-model="pojo.sharemoney" disabled></el-input>
+                        </el-form-item>
+                        <el-form-item label="备注" >
+                            <el-input v-model="pojo.remark" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取 消</el-button>
+                        <el-button type="primary" @click="saveOrUpdate()">确 定</el-button>
+                    </div>
+                </el-dialog>
+            </el-tab-pane>
+        </el-tabs>
     </div>
 </template>
 
@@ -129,6 +138,7 @@ import { arrToStr, strToArr } from '@/utils'
 export default {
     data() {
         return {
+            tabItem: '1',
             groupid: '',
             pieDataGroup: {
                 topic: '当前群组缴费',

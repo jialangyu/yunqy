@@ -113,7 +113,16 @@ export default {
     },
     initChart() {
       this.chart = echarts.init(this.$el, 'macarons')
+      this.chart.showLoading({
+          text: 'loading',
+          color: '#4cbbff',
+          textColor: '#4cbbff',
+          maskColor: 'rgba(255, 255, 255, 0.8)'
+      })
       this.setOptions(this.pieData)
+      setTimeout(() =>{
+        this.chart.hideLoading()
+      }, 2000)
     }
   }
 }

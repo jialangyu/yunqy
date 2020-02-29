@@ -2,7 +2,7 @@
     <div>
         <el-form :inline="true" class="demo-form-inline">
             <el-form-item v-if="roles.indexOf('1')>-1">
-                <el-button type="primary" @click="dialogFormVisible = true;pojo={};id=null">新增</el-button>
+                <el-button type="primary" size="small" @click="dialogFormVisible = true;pojo={};id=null">新增</el-button>
             </el-form-item>
         </el-form>
         <el-table :data="list" style="width: 100%">

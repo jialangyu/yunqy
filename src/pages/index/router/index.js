@@ -97,7 +97,7 @@ export const asyncRouterMap = [
     path: '/type',
     component: Layout,
     meta: {
-      roles: ['0', '1']
+      roles: ['1']
     },
     children: [
       {

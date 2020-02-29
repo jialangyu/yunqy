@@ -30,6 +30,9 @@
           注册
         </el-button>
       </el-form-item>
+      <div class="tips">
+        <span>已有账号，现在 <router-link class="links" to="/login">去登录</router-link></span>
+      </div>
     </el-form>
     <footer-bar></footer-bar>
   </div>
