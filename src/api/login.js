@@ -23,3 +23,14 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function register(telno, password) {
+  return request({
+    url: '/user/register',
+    method: 'post',
+    data: {
+      telno,
+      password
+    }
+  })
+}

@@ -4,7 +4,6 @@
       <!-- <router-view :key="key"></router-view> -->
       <router-view></router-view>
     </transition>
-    <footer-bar></footer-bar>
   </section>
 </template>
 

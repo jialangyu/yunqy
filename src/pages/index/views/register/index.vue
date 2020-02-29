@@ -1,56 +1,70 @@
 <template>
   <div class="login-container">
-    <el-form autoComplete="on" :model="loginForm" :rules="loginRules" ref="loginForm" label-position="left" label-width="0px"
-      class="card-box login-form">
-      <h3 class="title">e缴费管理系统</h3>
+    <el-form :model="regForm" :rules="regRules" ref="regForm" class="card-box login-form">
+      <h3 class="title">注 册</h3>
       <el-form-item prop="username">
         <span class="svg-container svg-container_login">
           <svg-icon icon-class="user" />
         </span>
-        <el-input name="username" type="text" v-model="loginForm.username" size="small" autoComplete="on" placeholder="请输入您的账号" />
+        <el-input name="username" type="text" v-model="regForm.username" size="small" autoComplete="on" placeholder="请输入您的账号" />
       </el-form-item>
       <el-form-item prop="password">
         <span class="svg-container">
           <svg-icon icon-class="password"></svg-icon>
         </span>
-        <el-input name="password" :type="pwdType" @keyup.enter.native="handleLogin" size="small" v-model="loginForm.password" autoComplete="on"
-          placeholder="请输入您的登录密码"></el-input>
+        <el-input name="password" :type="pwdType" v-model="regForm.password" size="small" autoComplete="on"
+          placeholder="请设置您的登录密码"></el-input>
           <span class="show-pwd" @click="showPwd"><svg-icon icon-class="eye" /></span>
       </el-form-item>
+      <el-form-item prop="gVerify">
+        <span class="svg-container">
+          <svg-icon icon-class="user"></svg-icon>
+        </span>
+        <el-input type="text" v-model="regForm.gVerify" placeholder="请输入验证码"></el-input>
+        <div class="v-code" @click="refreshCode">
+          <Identify :identifyCode="identifyCode"></Identify>
+        </div>
+      </el-form-item>
       <el-form-item>
-        <el-button type="primary" style="width:100%;" :loading="loading" @click.native.prevent="handleLogin">
-          登录
+        <el-button type="primary" style="width:100%;" :loading="loading" @click.native.prevent="handleReg">
+          注册
         </el-button>
       </el-form-item>
-      <div class="tips">
-        <span>没有账号？ <router-link class="links" to="/register">立即注册</router-link></span>
-      </div>
     </el-form>
     <footer-bar></footer-bar>
   </div>
 </template>
 
 <script>
+import { register } from '@/api/login'
 import { FooterBar } from '@/pages/index/views/layout/components'
+import Identify from '@/components/identify'
 export default {
-  name: 'login',
+  name: 'register',
   components: {
-    FooterBar
+    FooterBar,
+    Identify
   },
   data() {
+    // TODO 登录注册的展现形式
+    // TODO 纯前端实现验证码功能
     return {
       falg: false,
-      loginForm: {
+      regForm: {
         username: '',
-        password: ''
+        password: '',
+        gVerify: ''
       },
-      loginRules: {
+      regRules: {
         username: [{ required: true, message: '请输入您的账号', trigger: 'blur' }],
         password: [
           { required: true, message: '请输入您的登录密码', trigger: 'blur' },
           { min: 5, message: '密码不少于5位', trigger: 'blur' }
-        ]
+        ],
+        gVerify: [{ required: true, message: "请输入验证码", trigger: 'blur' }]
       },
+      identifyCodes: '1234567890abcdefjhijklinopqrsduvwxyz',
+      identifyCode: '',
       loading: false,
       pwdType: 'password'
     }
@@ -63,18 +77,45 @@ export default {
         this.pwdType = 'password'
       }
     },
-    handleLogin() {
+    // 重置验证码
+    refreshCode () {
+      this.identifyCode = ''
+      this.makeCode(this.identifyCodes, 4)
+    },
+    makeCode (o, l) {
+      for (let i = 0; i < l; i++) {
+        this.identifyCode += this.identifyCodes[this.randomNum(0, this.identifyCodes.length)]
+      }
+    },
+    randomNum (min, max) {
+      return Math.floor(Math.random() * (max - min) + min)
+    },
+    handleReg() {
       var that = this
-      this.$refs.loginForm.validate(valid => {
+      if (this.regForm.gVerify.toLowerCase() !== this.identifyCode.toLowerCase()) {
+        this.$message.error('请填写正确验证码')
+        this.refreshCode()
+        return
+      }
+      this.$refs.regForm.validate(valid => {
         if (valid) {
           that.loading = true
-          that.$store.dispatch('Login', that.loginForm).then((response) => {
-            var roles = that.$store.getters.roles
-            that.$store.dispatch('GenerateRoutes', { roles }).then(() => {
-              that.$router.addRoutes(that.$store.getters.addRouters)
-              that.$router.push({ path: '/' })
-            })
-            that.loading = false
+          register(that.regForm.username, that.regForm.password).then( response => {
+              this.$message({
+                  showClose: true,
+                  message: response.message,
+                  type: response.flag?'success':'error'
+              });
+              if(response.flag){
+                that.loading = false
+                that.$store.dispatch('Login', that.regForm).then((response) => {
+                  var roles = that.$store.getters.roles
+                  that.$store.dispatch('GenerateRoutes', { roles }).then(() => {
+                    that.$router.addRoutes(that.$store.getters.addRouters)
+                    that.$router.push({ path: '/' })
+                  })
+                })
+              }
           }).catch(() => {
             that.loading = false
           })
@@ -83,6 +124,10 @@ export default {
         }
       })
     }
+  },
+  mounted () {
+    // 初始化验证码
+    this.refreshCode()
   }
 }
 </script>
@@ -169,10 +214,13 @@ export default {
       cursor: pointer;
       user-select:none;
     }
-    .thirdparty-button{
+    .v-code {
       position: absolute;
-      right: 35px;
-      bottom: 28px;
+      right: 10px;
+      top: 7px;
+      display: block;
+      width: 90px;
+      height: 40px;
     }
   }
 </style>

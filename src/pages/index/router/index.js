@@ -23,6 +23,7 @@ import Layout from '../views/layout/Layout'
 **/
 export const constantRouterMap = [
   { path: '/login', component: resolve => require(['../views/login/index'], resolve), hidden: true },
+  { path: '/register', component: resolve => require(['../views/register/index'], resolve), hidden: true },
   { path: '/404', component: resolve => require(['../views/404'], resolve), hidden: true },
   { path: '/401', component: resolve => require(['../views/401'], resolve), hidden: true },
 
