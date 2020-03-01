@@ -87,15 +87,15 @@
                 </el-pagination>
 
                 <el-dialog title="新增缴费" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
-                    <el-form label-width="100px">
-                        <el-form-item label="缴费类型" >
+                    <el-form :model="pojo" :rules="pojoRules" ref="pojo" label-width="100px">
+                        <el-form-item label="缴费类型" prop="typeid">
                             <el-radio-group v-model="pojo.typeid" size="small" style="margin-bottom:-10px;">
                                 <el-radio-button v-for="item in typeList" :key="item.id"
                                             :label="item.id" :value="item.id">{{item.typename}}</el-radio-button>
                             </el-radio-group>
                         </el-form-item>
                         <el-form-item label="缴费人" >{{UName}}</el-form-item>
-                        <el-form-item label="缴费日期" >
+                        <el-form-item label="缴费日期" prop="paytime">
                             <el-date-picker
                                 v-model="pojo.paytime"
                                 type="date"
@@ -104,10 +104,10 @@
                                 value-format="yyyy-MM-dd">
                             </el-date-picker>
                         </el-form-item>
-                        <el-form-item label="缴费金额" >
+                        <el-form-item label="缴费金额" prop="paycount">
                             <el-input v-model="pojo.paycount" @change="changePtAllCostFun"></el-input>
                         </el-form-item>
-                        <el-form-item label="平摊人" >
+                        <el-form-item label="平摊人">
                             <el-select v-model="ptUserArr" multiple placeholder="请选择"
                                 @change="changePtUserFun">
                                 <el-option v-for="item in userListGroup" :key="item.id"
@@ -115,16 +115,16 @@
                                 </el-option>
                             </el-select>
                         </el-form-item>
-                        <el-form-item label="均摊金额" >
+                        <el-form-item label="均摊金额" prop="sharemoney">
                             <el-input v-model="pojo.sharemoney" disabled></el-input>
                         </el-form-item>
-                        <el-form-item label="备注" >
+                        <el-form-item label="备注" prop="remark">
                             <el-input v-model="pojo.remark" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-form>
                     <div slot="footer" class="dialog-footer">
-                        <el-button @click="dialogFormVisible = false">取 消</el-button>
-                        <el-button type="primary" @click="saveOrUpdate()">确 定</el-button>
+                        <el-button size="small" @click="dialogFormVisible = false">取 消</el-button>
+                        <el-button size="small" type="primary" @click="saveOrUpdate('pojo')">确 定</el-button>
                     </div>
                 </el-dialog>
             </el-tab-pane>
@@ -172,7 +172,18 @@ export default {
             endTime: '',
             moneyList:null,
             dialogFormVisible :false,
-            pojo:{},
+            pojo:{
+                typeid: '',
+                paytime: '',
+                paycount: '',
+                sharemoney: ''
+            },
+            pojoRules: {
+                typeid: [{ required: true, message: '请选择缴费类型', trigger: 'blur' }],
+                paytime: [{ required: true, message: '请选择缴费日期', trigger: 'blur' }],
+                paycount: [{ required: true, message: '请输入缴费金额', trigger: 'blur' }],
+                sharemoney: [{ required: true, message: '请输入均摊金额', trigger: 'blur' }]
+            },
             id:null,
             page:1,
             size:10,
@@ -249,23 +260,30 @@ export default {
         },
         //保存新增活动
         saveOrUpdate() {
-            this.pojo.payuserid = this.UID
-            // this.pojo.typeid = arrToStr(this.pojo.typeid)
-            this.pojo.groupid = this.groupid
-            this.pojo.shareuserid = arrToStr(this.ptUserArr)
-            paymoneyApi.saveOrUpdate(this.id,this.pojo).then( response => {
-                this.$message({
-                    showClose: true,
-                    message: response.message,
-                    type: response.flag?'success':'error'
-                });
-                //保存成功(flag=true),关闭弹出框,并刷新列表
-                if(response.flag){
-                    this.dialogFormVisible = false  //关闭弹出框
-                    this.search()
-                    this.getGroupAllCosts()
+            this.$refs['pojo'].validate((valid) => {
+                if (valid) {
+                    this.pojo.payuserid = this.UID
+                    // this.pojo.typeid = arrToStr(this.pojo.typeid)
+                    this.pojo.groupid = this.groupid
+                    this.pojo.shareuserid = arrToStr(this.ptUserArr)
+                    paymoneyApi.saveOrUpdate(this.id,this.pojo).then( response => {
+                        this.$message({
+                            showClose: true,
+                            message: response.message,
+                            type: response.flag?'success':'error'
+                        });
+                        //保存成功(flag=true),关闭弹出框,并刷新列表
+                        if(response.flag){
+                            this.dialogFormVisible = false  //关闭弹出框
+                            this.search()
+                            this.getGroupAllCosts()
+                        }
+                    })
+                } else {
+                    console.log('error submit!!');
+                    return false;
                 }
-            })       
+            })    
         },
         findById(id) {
             this.id = id;

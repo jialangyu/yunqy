@@ -86,11 +86,11 @@
         label-width="80px" : 描述信息和输入框在一行显示
     -->
     <el-dialog title="新增缴费群组" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
-        <el-form label-width="100px">
-            <el-form-item label="群组名称" >
+        <el-form label-width="100px" :model="pojo" :rules="pojoRules" ref="pojo">
+            <el-form-item label="群组名称" prop="groupname">
                 <el-input v-model="pojo.groupname"></el-input>
             </el-form-item>
-            <el-form-item label="群组密钥" >
+            <el-form-item label="群组密钥" prop="grouppwd">
                 <el-input v-model="pojo.grouppwd" type="password"></el-input>
             </el-form-item>
             <el-form-item v-if="!id" label="创建人" prop="createuserid">{{name}}</el-form-item>
@@ -100,8 +100,8 @@
             </el-form-item>
         </el-form>
         <div slot="footer" class="dialog-footer">
-            <el-button @click="dialogFormVisible = false">取 消</el-button>
-            <el-button type="primary" @click="saveOrUpdate()">确 定</el-button>
+            <el-button size="small" @click="dialogFormVisible = false">取 消</el-button>
+            <el-button size="small" type="primary" @click="saveOrUpdate">确 定</el-button>
         </div>
     </el-dialog>
     </div>
@@ -117,7 +117,18 @@ export default {
             list:null,
             searchMap:{},
             dialogFormVisible :false,
-            pojo:{},
+            pojo: {
+                groupname: '',
+                grouppwd: ''
+            },
+            pojoRules: {
+                groupname: [
+                    { required: true, message: '请输入群组名称', trigger: 'blur' }
+                ],
+                grouppwd: [
+                    { required: true, message: '请输入群组密钥', trigger: 'blur' }
+                ]
+            },
             id:null,
             page:1,
             size:10,
@@ -140,24 +151,30 @@ export default {
     },
     methods: {
         saveOrUpdate() {
-            if(this.id) {
-                this.pojo.updateuserid = this.UID
-            }else{
-                this.pojo.createuserid = this.UID
-                this.pojo.groupmembers = this.UID
-            }
-            groupApi.saveOrUpdate(this.id,this.pojo).then( response => {
-                this.$message({
-                    showClose: true,
-                    message: response.message,
-                    type: response.flag?'success':'error'
-                });
-                //保存成功(flag=true),关闭弹出框,并刷新列表
-                if(response.flag){
-                    this.dialogFormVisible = false  //关闭弹出框
-                    this.search()
+            this.$refs['pojo'].validate((valid) => {
+                if (valid) {
+                    if(this.id) {
+                        this.pojo.updateuserid = this.UID
+                    }else{
+                        this.pojo.createuserid = this.UID
+                        this.pojo.groupmembers = this.UID
+                    }
+                    groupApi.saveOrUpdate(this.id,this.pojo).then( response => {
+                        this.$message({
+                            showClose: true,
+                            message: response.message,
+                            type: response.flag?'success':'error'
+                        });
+                        //保存成功(flag=true),关闭弹出框,并刷新列表
+                        if(response.flag){
+                            this.dialogFormVisible = false  //关闭弹出框
+                            this.search()
+                        }
+                    })
+                } else {
+                    return false
                 }
-            })       
+            })
         },
         findById(id) {
             this.id = id;
