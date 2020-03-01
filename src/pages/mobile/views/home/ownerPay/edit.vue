@@ -1,7 +1,21 @@
 <template>
   <box class="main-con">
     <group>
-      <popup-picker title="缴费类型" show-name :data="[typeList()]" v-model="pojo.typeid" placeholder="请选择缴费类型" required></popup-picker>
+      <group-title><span class="geoup-title">缴费类型</span> (点击下列类别选择所属分类)</group-title>
+      <cell-box>
+        <checker
+          v-if="typeListArr.length>0"
+          v-model="pojo.typeid"
+          type="radio" :radio-required="true"
+          default-item-class="demo4-item"
+          selected-item-class="demo4-item-selected"
+          disabled-item-class="demo4-item-disabled">
+            <checker-item v-for="item in typeListArr" :key="item.value"
+              :value="item.value"> {{ item.name }} </checker-item>
+          </checker>
+        </cell-box>
+    </group>
+    <group>
       <datetime title="缴费日期" v-model="pojo.paytime" placeholder="请选择缴费日期"></datetime>
       <x-input title="缴费金额" v-model="pojo.paycount" placeholder="请输入缴费金额" text-align="right" required></x-input>
     </group>
@@ -16,14 +30,18 @@
 </template>
 
 <script>
-import { PopupPicker, Datetime } from "vux";
+import { PopupPicker, Datetime, Checker, CheckerItem, GroupTitle, CellBox } from "vux";
 import paymoneyApi from "@/api/paymoney";
 import { arrToStr, strToArr } from '@/utils'
 import { messageFun } from '@/utils/msg'
 export default {
   components: {
     PopupPicker,
-    Datetime
+    Datetime,
+    Checker,
+    CheckerItem,
+    GroupTitle,
+    CellBox
   },
   data() {
     return {
@@ -32,7 +50,8 @@ export default {
         typeid: [],
         paytime: '',
         paycount: '',
-        remark: ''
+        remark: '',
+        typeListArr: []
       }
     };
   },
@@ -48,6 +67,7 @@ export default {
     }
   },
   created() {
+    this.typeListArr = this.typeList()
     if (this.$route.query.id) {
       this.payid = this.$route.query.id
       this.findById()
@@ -85,12 +105,37 @@ export default {
     },
     findById() {
       paymoneyApi.findByIdOwner(this.payid).then(response => {
-        response.data.typeid = strToArr(response.data.typeid)
-        this.$nextTick(() => {
-          this.pojo = response.data
-        })
+        if (response.flag && response.data) {
+          response.data.typeid = strToArr(response.data.typeid)
+          this.$nextTick(() => {
+            this.pojo = response.data
+          })
+        }
       })
     }
   }
 };
 </script>
+<style scoped>
+.demo4-item {
+  background-color: #eee;
+  color: #222;
+  font-size: 14px;
+  padding: 5px 10px;
+  margin:5px;
+  line-height: 18px;
+  border-radius: 15px;
+}
+.demo4-item-selected {
+  background-color: rgba(0, 209, 146, 1);
+  color: #fff;
+}
+.demo4-item-disabled {
+  background-color: rgba(0, 209, 146, 0.7);
+  color: rgba(256,256,256,.8);
+}
+.geoup-title{
+  font-size: 17px;
+  color: #666666;
+}
+</style>

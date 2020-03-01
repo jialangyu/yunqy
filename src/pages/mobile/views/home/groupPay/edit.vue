@@ -2,12 +2,29 @@
   <box class="main-con">
     <group>
       <x-input title="缴费人" :value="UName" text-align="right" readonly></x-input>
-      <popup-picker title="缴费类型" show-name :data="typeList()?[typeList()]:[]" v-model="pojo.typeid" placeholder="请选择缴费类型" required></popup-picker>
+    </group>
+    <group>
+      <group-title><span class="geoup-title">缴费类型</span> (点击下列类别选择所属分类)</group-title>
+      <cell-box>
+        <checker
+          v-if="typeListArr.length>0"
+          v-model="pojo.typeid"
+          type="radio" :radio-required="true"
+          default-item-class="demo4-item"
+          selected-item-class="demo4-item-selected"
+          disabled-item-class="demo4-item-disabled">
+            <checker-item v-for="item in typeListArr" :key="item.value"
+              :value="item.value"> {{ item.name }} </checker-item>
+          </checker>
+        </cell-box>
+    </group>
+    <group>
+      <!-- <popup-picker title="缴费类型" show-name :data="typeListArr?[typeListArr]:[]" v-model="pojo.typeid" placeholder="请选择缴费类型" required></popup-picker> -->
       <datetime title="缴费日期" v-model="pojo.paytime" placeholder="请选择缴费日期"></datetime>
       <x-input title="缴费金额" v-model="pojo.paycount" placeholder="请输入缴费金额" text-align="right" required @on-change="changePtAllCostFun"></x-input>
     </group>
     <group>
-      <group-title>平摊人</group-title>
+      <group-title><span class="geoup-title">平摊人</span> (点击下列组员平摊费用)</group-title>
       <cell-box>
         <checker
         v-model="ptUserArr"
@@ -55,7 +72,8 @@ export default {
       payid: '',
       pojo: {},
       userListGroup: [],
-      ptUserArr: []
+      ptUserArr: [],
+      typeListArr: []
     };
   },
   computed: {
@@ -70,6 +88,7 @@ export default {
     }
   },
   created() {
+    this.typeListArr = this.typeList()
     if(this.$route.query.gid) {
       this.groupid = this.$route.query.gid
       this.findAllUserById()
@@ -143,7 +162,7 @@ export default {
     },
     countPtpay() {
       this.pojo.sharemoney = this.pojo.paycount
-      if (this.ptUserArr.length > 1) {
+      if (this.ptUserArr.length > 1 && this.pojo.paycount) {
         this.pojo.sharemoney = Number(this.pojo.paycount) / this.ptUserArr.length
       }
       this.$forceUpdate()
@@ -169,5 +188,9 @@ export default {
 .demo4-item-disabled {
   background-color: rgba(0, 209, 146, 0.7);
   color: rgba(256,256,256,.8);
+}
+.geoup-title{
+  font-size: 17px;
+  color: #666666;
 }
 </style>

@@ -1,9 +1,9 @@
 <template>
     <div>
         <el-tabs type="border-card" v-model="tabItem">
-            <el-tab-pane name="1" lazy>
+            <el-tab-pane name="2" lazy>
                 <span slot="label"><i class="el-icon-time"></i> 统计</span>
-                <div class="chart-wrapper" v-if="tabItem==='1'">
+                <div class="chart-wrapper" v-if="tabItem==='2'">
                     <h4>
                         按月份统计
                         <div>
@@ -16,7 +16,7 @@
                     <pie-chart :pieData="pieDataGroup" v-if="sumCount"></pie-chart>
                 </div>
             </el-tab-pane>
-            <el-tab-pane name="2">
+            <el-tab-pane name="1">
                 <span slot="label"><i class="el-icon-tickets"></i> 账单明细</span>
                 <el-form :inline="true" class="demo-form-inline">
                     <el-form-item>
@@ -89,16 +89,10 @@
                 <el-dialog title="新增缴费" :visible.sync="dialogFormVisible" :close-on-click-modal="false">
                     <el-form label-width="100px">
                         <el-form-item label="缴费类型" >
-                            <el-select v-model="pojo.typeid" placeholder="请选择">
-                                <!--v-for: 循环迭代 
-                                    :label : 对应的数据里存放城市的属性名称,这里是name
-                                    :value : 存放城市的id
-                                    :key : 也是对应的id
-                                -->
-                                <el-option v-for="item in typeList" :key="item.id"
-                                            :label="item.typename" :value="item.id">
-                                </el-option>
-                            </el-select>
+                            <el-radio-group v-model="pojo.typeid" size="small" style="margin-bottom:-10px;">
+                                <el-radio-button v-for="item in typeList" :key="item.id"
+                                            :label="item.id" :value="item.id">{{item.typename}}</el-radio-button>
+                            </el-radio-group>
                         </el-form-item>
                         <el-form-item label="缴费人" >{{UName}}</el-form-item>
                         <el-form-item label="缴费日期" >
@@ -370,9 +364,21 @@ export default {
 }
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .chart-wrapper h4{
     display: flex;
     justify-content: space-between;
+}
+/deep/ .el-radio-button{
+    margin-right: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #dcdfe6;
+    border-radius: 5px;
+    overflow: hidden;
+}
+/deep/ .el-radio-button--small .el-radio-button__inner{
+    border: none;
+    outline: none;
+    padding: 5px 12px;
 }
 </style>
