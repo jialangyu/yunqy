@@ -120,7 +120,6 @@ export default {
     },
     onSubmit() {
       this.pojo.payuserid = this.UID
-      this.pojo.typeid = arrToStr(this.pojo.typeid)
       this.pojo.groupid = this.groupid
       this.pojo.shareuserid = arrToStr(this.ptUserArr)
       paymoneyApi.saveOrUpdate(this.payid,this.pojo).then( response => {
@@ -132,7 +131,6 @@ export default {
     },
     findById() {
       paymoneyApi.findById(this.payid).then(response => {
-        response.data.typeid = strToArr(response.data.typeid)
         response.data.payuserid = strToArr(response.data.payuserid)
         this.$nextTick(() => {
           this.pojo = response.data

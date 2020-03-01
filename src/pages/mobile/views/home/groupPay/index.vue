@@ -193,6 +193,9 @@ export default {
       })
       if(response.flag && response.data) {
         const oj = response.data.rows
+        if (response.data.total === 0) {
+          this.pojo = []
+        }
         if(oj.length > 0) {
           for (let i = 0; i < oj.length; ++i) {
             if (oj[i].typeid) {
@@ -224,12 +227,14 @@ export default {
             }
           }
           this.$nextTick(() => {
-            this.pojo = this.pojo.concat(oj)
+            this.pojo = oj.length > this.size ? this.pojo.concat(oj) : oj
           })
           if (oj.length < this.size) {
             this.scrollData.noFlag = true
           }
         }
+      } else {
+        this.pojo = []
       }
       this.scrollData.loading = false
     },
@@ -241,7 +246,9 @@ export default {
           paymoneyApi.deleteById(id).then(response => {
             messageFun(response)
             if (response.flag) {
-              this.search();
+              this.getSumCount()
+              this.search()
+              this.getGroupAllCosts()
             }
           })
         }

@@ -160,5 +160,17 @@ export default {
   .footer-wrapper{
     bottom: 0.5em;
   }
+  .tips {
+    font-size: 1.5em;
+    color: #ccc;
+    text-align: right;
+    line-height: 3.2;
+    .links{
+      color:#fff;
+      &:hover{
+        text-decoration: underline;
+      }
+    }
+  }
 }
 </style>

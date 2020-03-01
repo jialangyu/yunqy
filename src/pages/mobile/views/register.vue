@@ -124,6 +124,7 @@ export default {
               this.loading = false
               this.$store.dispatch('Login', this.regForm).then((response) => {
                 this.$router.push({ path: '/' })
+                this.$store.dispatch('getDictuList')
                 this.loading = false
               })
             }
@@ -216,11 +217,10 @@ export default {
     bottom: 0.5em;
   }
   .tips {
-    font-size: 12px;
-    color: #eee;
-    margin-bottom: 10px;
+    font-size: 1.5em;
+    color: #ccc;
     text-align: right;
-    line-height: 40px;
+    line-height: 3.2;
     .links{
       color:#fff;
       &:hover{

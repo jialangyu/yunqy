@@ -94,7 +94,6 @@ export default {
       return false;
     },
     onSubmit() {
-      this.pojo.typeid = arrToStr(this.pojo.typeid)
       this.pojo.userid = this.UID
       paymoneyApi.saveOrUpdateOwner(this.payid,this.pojo).then( response => {
         messageFun(response)
@@ -106,7 +105,6 @@ export default {
     findById() {
       paymoneyApi.findByIdOwner(this.payid).then(response => {
         if (response.flag && response.data) {
-          response.data.typeid = strToArr(response.data.typeid)
           this.$nextTick(() => {
             this.pojo = response.data
           })

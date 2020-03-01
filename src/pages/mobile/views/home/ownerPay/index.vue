@@ -169,24 +169,29 @@ export default {
         size: this.size
       }).then( response => {
         if(response.flag && response.data) {
+          if (response.data.total === 0) {
+            this.pojo = []
+          }
           const oj = response.data.rows
           if(oj.length > 0) {
             for (let i = 0; i < oj.length; ++i) {
-            if (oj[i].typeid) {
-              queryBase.getType(oj[i].typeid, function(sc, value) {
-                if (sc) {
-                  oj[i].typeName = value.typename
-                }
-              })
+              if (oj[i].typeid) {
+                queryBase.getType(oj[i].typeid, function(sc, value) {
+                  if (sc) {
+                    oj[i].typeName = value.typename
+                  }
+                })
+              }
             }
-          }
             this.$nextTick(() => {
-              this.pojo = this.pojo.concat(oj)
+              this.pojo = oj.length > this.size ? this.pojo.concat(oj) : oj
             })
             if (oj.length < this.size) {
               this.scrollData.noFlag = true
             }
           }
+        } else {
+          this.pojo = []
         }
         this.scrollData.loading = false
       })
@@ -199,7 +204,9 @@ export default {
           paymoneyApi.deleteByIdOwner(id).then(response => {
             messageFun(response)
             if (response.flag) {
+              this.getSumCountOwner()
               this.search();
+              this.getOwnerAllCosts()
             }
           })
         }
