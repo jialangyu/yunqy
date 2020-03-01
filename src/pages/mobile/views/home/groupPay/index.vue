@@ -8,7 +8,15 @@
     </box>
     <template v-if="curTab===0">
       <div class="chart-wrapper" v-if ="sumCount">
-        <pie-chart :pieData="pieData" :height="'400px'" :channel="true"></pie-chart>
+        <group>
+          <popup-picker title="按月份统计" :data="[yearsOptions]" v-model="selectedYear" show-name
+            @on-change="changedYear" placeholder="请选择"></popup-picker>
+          <bar-chart :barData="barData" height="260px" :channel="true"></bar-chart>
+        </group>
+        <group>
+          <cell title="按分类统计"></cell>
+          <pie-chart :pieData="pieData" height="400px" :channel="true"></pie-chart>
+        </group>
       </div>
       <div v-else class="nodata">
         暂无缴费记录
@@ -79,18 +87,21 @@
 <script>
 import queryBase from '@/utils/queryBase'
 import { strToArr, arrToStr } from '@/utils'
-import { FormPreview, ButtonTab, ButtonTabItem } from "vux";
+import { FormPreview, ButtonTab, ButtonTabItem, PopupPicker } from "vux";
 import paymoneyApi from "@/api/paymoney";
 import { messageFun } from "@/utils/msg";
 import VScroll from "@/components/ScrollMore";
 import PieChart from '@/components/ECharts/PieChart'
+import BarChart from '@/components/ECharts/BarChart'
 export default {
   components: {
     FormPreview,
     ButtonTab,
     ButtonTabItem,
+    PopupPicker,
     VScroll,
-    PieChart
+    PieChart,
+    BarChart
   },
   data() {
     return {
@@ -115,7 +126,14 @@ export default {
           tit: [],
           sData: []
       },
-      sumCount:0
+      barData: {
+          topic: '年度总消费统计',
+          xData: [],
+          yData: []
+      },
+      sumCount:0,
+      selectedYear: [],
+      yearsOptions: []
     };
   },
   computed: {
@@ -130,13 +148,27 @@ export default {
     }
   },
   created() {
+    this.selectedYear.push((new Date().getFullYear()).toString())
+    this.setYearsOptions()
     if (this.$route.query.id) {
         this.groupid = this.$route.query.id
+        this.getSumCount()
         this.search()
         this.getGroupAllCosts()
     }
   },
   methods: {
+    setYearsOptions() {
+      let years = []
+      const curYear = Number(this.selectedYear[0])
+      for (let i = curYear; i >= 1990; i--) {
+        years.push({
+          name: i + '年',
+          value: i + ''
+        })
+      }
+      this.yearsOptions = years
+    },
     onLoadMore(done) {
       var that = this
       if (!that.scrollData.noFlag) {
@@ -212,6 +244,18 @@ export default {
           })
         }
       })
+    },
+    changedYear(val) {
+        this.getSumCount()
+    },
+    getSumCount() {
+        const year = this.selectedYear[0]
+        paymoneyApi.findSumByYear(this.groupid, year).then(response => {
+            if (response.flag && response.data) {
+                this.barData.xData = Object.keys(response.data)
+                this.barData.yData = Object.values(response.data)
+            } 
+        })
     },
     async getGroupAllCosts() {
       var titArr = []

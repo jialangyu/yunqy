@@ -6,9 +6,10 @@
                 <div class="chart-wrapper" v-if="tabItem==='1'">
                     <h4>
                         按月份统计
+                        <div>
                         <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
                             type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
-                        </el-date-picker> 年
+                        </el-date-picker> 年</div>
                     </h4>
                     <bar-chart :barData="barDataGroup"></bar-chart>
                     <h4>按分类统计</h4>
@@ -162,7 +163,7 @@ export default {
                 sData: []
             },
             barDataGroup: {
-                topic: '本年度总消费',
+                topic: '年度总消费统计',
                 xData: [],
                 yData: []
             },
@@ -370,8 +371,8 @@ export default {
 </script>
 
 <style scoped>
-    .chart-wrapper{
-        border-bottom: 1px solid #ccc;
-        margin-bottom: 20px;
-    }
+.chart-wrapper h4{
+    display: flex;
+    justify-content: space-between;
+}
 </style>

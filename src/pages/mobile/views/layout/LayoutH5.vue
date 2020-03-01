@@ -24,19 +24,14 @@ export default {
       levelName: null,
       tabList: [
         {
-          name: '首页',
-          icon: 'home',
-          rname: 'home'
-        },
-        {
           name: '群组',
           icon: 'group',
           rname: 'group'
         },
         {
-          name: '类型',
-          icon: 'form',
-          rname: 'type'
+          name: '账单',
+          icon: 'example',
+          rname: 'home'
         },
         {
           name: '我',
@@ -155,8 +150,8 @@ export default {
 }
 
 .chart-wrapper{
-  margin: 2em 0;
-  background: #ffffff;
+  margin: 1em 0;
+  // background: #ffffff;
 }
 .main-con{
   .group-btn{

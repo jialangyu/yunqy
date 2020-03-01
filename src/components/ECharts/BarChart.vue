@@ -62,6 +62,15 @@ export default {
   methods: {
     setOptions(barData) {
       this.chart.setOption({
+        title: {
+          text: barData.topic,
+          textStyle: {
+            color: '#333',
+            fontSize: 14
+          },
+          right: 10,
+          top: 10
+        },
         tooltip: {
           trigger: 'axis',
           formatter: '{a} <br/>{b}月 : ￥{c}'
@@ -75,13 +84,15 @@ export default {
             }  
           }
         ],
+        grid: {
+          left: this.channel ? '15%' : '10%',
+          right: this.channel ? '5%' : '5%'
+        },
         yAxis: [
           {
             type: 'value',
             scale: true,
-            axisLabel: {
-              formatter: '￥{value}'
-            }
+            name: '人民币/元'
           }
         ],
         series: [
