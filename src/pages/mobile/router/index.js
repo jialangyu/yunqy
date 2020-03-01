@@ -23,6 +23,7 @@ import LayoutH5 from '../views/layout/LayoutH5'
 **/
 export const constantRouterMap = [
   { path: '/login', component: resolve => require(['../views/login'], resolve), hidden: true },
+  { path: '/register', component: resolve => require(['../views/register'], resolve), hidden: true },
   // { path: '/404', component: resolve => require(['../views/404'], resolve), hidden: true },
   // { path: '/401', component: resolve => require(['../views/401'], resolve), hidden: true },
   {

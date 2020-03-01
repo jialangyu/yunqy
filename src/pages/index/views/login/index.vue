@@ -116,18 +116,6 @@ export default {
       height: 47px;
       width: 85%;
     }
-    .tips {
-      font-size: 12px;
-      color: #fff;
-      margin-bottom: 10px;
-      text-align: right;
-      .links{
-        color:#409eff;
-        &:hover{
-          text-decoration: underline;
-        }
-      }
-    }
     .svg-container {
       padding: 6px 5px 6px 15px;
       color: $dark_gray;

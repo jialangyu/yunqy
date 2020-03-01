@@ -113,8 +113,5 @@ export default {
         }
     }
 }
-.nodata{
-    font-size:13px;text-align:center;line-height:240px;color: #999;
-}
 </style>
 

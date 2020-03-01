@@ -1,26 +1,35 @@
 <template>
     <div class="log-show">
       <div class="log-body">
-        <p class="log-tit">e缴费管理系统</p>
+        <p class="log-tit">注 册</p>
         <group class="log-form">
           <div class="log-item">
             <span class="svg-container">
               <svg-icon icon-class="user" />
             </span>
-            <x-input title="账" type="text" v-model="loginForm.username" placeholder="请输入您的账号" required></x-input>
+            <x-input title="账" type="text" v-model="regForm.username" placeholder="请输入您的账号" required></x-input>
           </div>
           <div class="log-item">
             <span class="svg-container">
               <svg-icon icon-class="password" />
             </span>
-            <x-input title="密" :type="pwdType" @keyup.enter.native="handleLogin" :min="5" v-model="loginForm.password" placeholder="请输入您的登录密码" required></x-input>
+            <x-input title="密" :type="pwdType" :min="5" v-model="regForm.password" placeholder="请输入您的登录密码" required></x-input>
             <span class="show-pwd" @click="showPwd"><svg-icon icon-class="eye" /></span>
+          </div>
+          <div class="log-item">
+            <span class="svg-container">
+              <svg-icon icon-class="example" />
+            </span>
+            <x-input title="验" type="text" @keyup.enter.native="handleReg" :min="4" :max="4" v-model="regForm.gVerify" placeholder="请输入验证码" required></x-input>
+            <div class="v-code" @click="refreshCode">
+              <Identify :identifyCode="identifyCode"></Identify>
+            </div>
           </div>
         </group>
         <div class="log-btn">
-          <x-button type="primary" :disabled="sureDisable()" :show-loading="loading" @click.native.prevent="handleLogin">登录</x-button>
+          <x-button type="primary" :disabled="sureDisable()" :show-loading="loading" @click.native.prevent="handleReg">注册</x-button>
           <div class="tips">
-            <span>没有账号？ <router-link class="links" to="/register">立即注册</router-link></span>
+            <span>已有账号，现在 <router-link class="links" to="/login">去登录</router-link></span>
           </div>
         </div>
       </div>
@@ -28,22 +37,29 @@
     </div>
 </template>
 <script>
+import { register } from '@/api/login'
 import { XInput, Cell } from 'vux'
 import { FooterBar } from '@/pages/index/views/layout/components'
+import Identify from '@/components/identify'
+import { messageFun } from '@/utils/msg'
 
 export default {
   components: {
     XInput,
     Cell,
-    FooterBar
+    FooterBar,
+    Identify
   },
   data () {
     return {
       falg: false,
-      loginForm: {
+      regForm: {
         username: '',
-        password: ''
+        password: '',
+        gVerify: ''
       },
+      identifyCodes: '1234567890abcdefjhijklinopqrsduvwxyz',
+      identifyCode: '',
       loading: false,
       pwdType: 'password'
     }
@@ -53,16 +69,33 @@ export default {
   //     return !this.checkIsPass() || false
   //   }
   // },
+  mounted () {
+    // 初始化验证码
+    this.refreshCode()
+  },
   created() {
     this.sureDisable()
   },
   methods: {
+    // 重置验证码
+    refreshCode () {
+      this.identifyCode = ''
+      this.makeCode(this.identifyCodes, 4)
+    },
+    makeCode (o, l) {
+      for (let i = 0; i < l; i++) {
+        this.identifyCode += this.identifyCodes[this.randomNum(0, this.identifyCodes.length)]
+      }
+    },
+    randomNum (min, max) {
+      return Math.floor(Math.random() * (max - min) + min)
+    },
     sureDisable() {
       return !this.checkIsPass() || false
     },
     checkIsPass() {
-      if (this.loginForm.username
-        && this.loginForm.password) {
+      if (this.regForm.username
+        && this.regForm.password) {
           return true
       }
       return false
@@ -74,12 +107,26 @@ export default {
         this.pwdType = 'password'
       }
     },
-    handleLogin() {
+    handleReg() {
+      if (this.regForm.gVerify.toLowerCase() !== this.identifyCode.toLowerCase()) {
+        this.$vux.toast.show({
+          text: '请填写正确验证码',
+          type: 'warn'
+        })
+        this.refreshCode()
+        return
+      }
       if (this.checkIsPass()) {
         this.loading = true
-        this.$store.dispatch('Login', this.loginForm).then((response) => {
-          this.$router.push({ path: '/' })
-          this.loading = false
+        register(this.regForm.username, this.regForm.password).then( response => {
+            messageFun(response);
+            if(response.flag){
+              this.loading = false
+              this.$store.dispatch('Login', this.regForm).then((response) => {
+                this.$router.push({ path: '/' })
+                this.loading = false
+              })
+            }
         }).catch(() => {
           this.loading = false
         })
@@ -141,6 +188,14 @@ export default {
           top: 50%;
           transform: translateY(-50%)
         }
+        .v-code {
+          position: absolute;
+          right: 2em;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 90px;
+          height: 40px;
+        }
       }
     }
     .log-btn{
@@ -159,6 +214,19 @@ export default {
   }
   .footer-wrapper{
     bottom: 0.5em;
+  }
+  .tips {
+    font-size: 12px;
+    color: #eee;
+    margin-bottom: 10px;
+    text-align: right;
+    line-height: 40px;
+    .links{
+      color:#fff;
+      &:hover{
+        text-decoration: underline;
+      }
+    }
   }
 }
 </style>

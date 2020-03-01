@@ -1,21 +1,6 @@
 <template>
     <div>
         <el-tabs type="border-card" v-model="tabItem">
-            <el-tab-pane name="2" lazy>
-                <span slot="label"><i class="el-icon-time"></i> 统计</span>
-                <div class="chart-wrapper" v-if="tabItem==='2'">
-                    <h4>
-                        按月份统计
-                        <div>
-                        <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
-                            type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
-                        </el-date-picker> 年</div>
-                    </h4>
-                    <bar-chart :barData="barDataGroup"></bar-chart>
-                    <h4>按分类统计</h4>
-                    <pie-chart :pieData="pieDataGroup" v-if="sumCount"></pie-chart>
-                </div>
-            </el-tab-pane>
             <el-tab-pane name="1">
                 <span slot="label"><i class="el-icon-tickets"></i> 账单明细</span>
                 <el-form :inline="true" class="demo-form-inline">
@@ -100,6 +85,7 @@
                                 v-model="pojo.paytime"
                                 type="date"
                                 :editable="false"
+                                :picker-options="pickerOptions"
                                 placeholder="选择缴费日期"
                                 value-format="yyyy-MM-dd">
                             </el-date-picker>
@@ -127,6 +113,23 @@
                         <el-button size="small" type="primary" @click="saveOrUpdate('pojo')">确 定</el-button>
                     </div>
                 </el-dialog>
+            </el-tab-pane>
+            <el-tab-pane name="2" lazy>
+                <span slot="label"><i class="el-icon-time"></i> 统计</span>
+                <div class="chart-wrapper" v-if="tabItem==='2'">
+                    <h4>
+                        按月份统计
+                        <div>
+                        <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
+                            type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
+                        </el-date-picker> 年</div>
+                    </h4>
+                    <bar-chart :barData="barDataGroup" v-if="barDataGroup"></bar-chart>
+                    <div v-else class="nodata">暂无统计信息……</div>
+                    <h4>按分类统计</h4>
+                    <pie-chart :pieData="pieDataGroup" v-if="pieDataGroup && sumCount"></pie-chart>
+                    <div v-else class="nodata">暂无统计信息……</div>
+                </div>
             </el-tab-pane>
         </el-tabs>
     </div>
@@ -277,6 +280,7 @@ export default {
                             this.dialogFormVisible = false  //关闭弹出框
                             this.search()
                             this.getGroupAllCosts()
+                            this.getSumCount()
                         }
                     })
                 } else {
@@ -310,6 +314,7 @@ export default {
                     if(response.flag){
                         this.search()
                         this.getGroupAllCosts()
+                        this.getSumCount()
                     }
                 })  
             })  

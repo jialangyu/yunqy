@@ -2,27 +2,11 @@
   <div class="mian-con">
     <box gap="60px 0 10px">
       <button-tab v-model="curTab">
+        <button-tab-item>账单明细</button-tab-item>
         <button-tab-item>统计</button-tab-item>
-        <button-tab-item>记录</button-tab-item>
       </button-tab>
     </box>
-    <template v-if="curTab===0">
-      <div class="chart-wrapper" v-if ="sumCount">
-        <group>
-          <popup-picker title="按月份统计" :data="[yearsOptions]" v-model="selectedYear" show-name
-            @on-change="changedYear" placeholder="请选择"></popup-picker>
-          <bar-chart :barData="barData" height="260px" :channel="true"></bar-chart>
-        </group>
-        <group>
-          <cell title="按分类统计"></cell>
-          <pie-chart :pieData="pieData" height="400px" :channel="true"></pie-chart>
-        </group>
-      </div>
-      <div v-else class="nodata">
-        暂无缴费记录
-      </div>
-    </template>
-    <v-scroll v-if="curTab===1" :onLoadMore="onLoadMore" :dataList="scrollData" :topVal="'110'">
+    <v-scroll v-if="curTab===0" :onLoadMore="onLoadMore" :dataList="scrollData" :topVal="'110'">
       <div v-if="pojo && pojo.length">
         <div v-for="item in pojo" :key="item.index">
           <form-preview
@@ -78,6 +62,24 @@
         暂无缴费记录
       </div>
     </v-scroll>
+    <template v-if="curTab===1">
+      <div class="chart-wrapper" v-if ="sumCount">
+        <group>
+          <popup-picker title="按月份统计" :data="[yearsOptions]" v-model="selectedYear" show-name
+            @on-change="changedYear" placeholder="请选择"></popup-picker>
+          <bar-chart :barData="barData" v-if="barData" height="260px" :channel="true"></bar-chart>
+          <div v-else class="nodata">暂无统计信息……</div>
+        </group>
+        <group>
+          <cell title="按分类统计"></cell>
+          <pie-chart :pieData="pieData" v-if="pieData && sumCount" height="400px" :channel="true"></pie-chart>
+          <div v-else class="nodata">暂无统计信息……</div>
+        </group>
+      </div>
+      <div v-else class="nodata">
+        暂无缴费记录
+      </div>
+    </template>
     <div class="add-group" @click="$router.push({name:'editGroupPay',query: {gid: groupid}})">
       <svg-icon icon-class="add" />
     </div>

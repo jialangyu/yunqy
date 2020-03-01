@@ -18,9 +18,9 @@
       </el-form-item>
       <el-form-item prop="gVerify">
         <span class="svg-container">
-          <svg-icon icon-class="user"></svg-icon>
+          <svg-icon icon-class="example"></svg-icon>
         </span>
-        <el-input type="text" v-model="regForm.gVerify" placeholder="请输入验证码"></el-input>
+        <el-input type="text" v-model="regForm.gVerify" maxlength="4" placeholder="请输入验证码"></el-input>
         <div class="v-code" @click="refreshCode">
           <Identify :identifyCode="identifyCode"></Identify>
         </div>
@@ -116,6 +116,7 @@ export default {
                   that.$store.dispatch('GenerateRoutes', { roles }).then(() => {
                     that.$router.addRoutes(that.$store.getters.addRouters)
                     that.$router.push({ path: '/' })
+                    this.$store.dispatch('getDictuList')
                   })
                 })
               }
@@ -163,18 +164,6 @@ export default {
       display: inline-block;
       height: 47px;
       width: 85%;
-    }
-    .tips {
-      font-size: 12px;
-      color: #fff;
-      margin-bottom: 10px;
-      text-align: right;
-      .links{
-        color:#409eff;
-        &:hover{
-          text-decoration: underline;
-        }
-      }
     }
     .svg-container {
       padding: 6px 5px 6px 15px;
