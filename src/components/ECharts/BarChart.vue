@@ -63,7 +63,7 @@ export default {
     setOptions(barData) {
       this.chart.setOption({
         title: {
-          text: barData.topic,
+          // text: barData.topic,
           textStyle: {
             color: '#333',
             fontSize: 14
@@ -106,20 +106,20 @@ export default {
     },
     initChart() {
       this.chart = echarts.init(this.$el, 'macarons')
-      if (this.chart) {
-        this.chart.showLoading({
-            text: 'loading',
-            color: '#4cbbff',
-            textColor: '#4cbbff',
-            maskColor: 'rgba(255, 255, 255, 0.8)'
-        })
-      }
+      // if (this.chart) {
+      //   this.chart.showLoading({
+      //       text: 'loading',
+      //       color: '#4cbbff',
+      //       textColor: '#4cbbff',
+      //       maskColor: 'rgba(255, 255, 255, 0.8)'
+      //   })
+      // }
       this.setOptions(this.barData)
-      if (this.chart) {
-        setTimeout(() =>{
-          this.chart.hideLoading()
-        }, 2000)
-      }
+      // if (this.chart) {
+      //   setTimeout(() =>{
+      //     this.chart.hideLoading()
+      //   }, 1000)
+      // }
     }
   }
 }

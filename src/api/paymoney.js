@@ -68,6 +68,13 @@ export default {
       method: 'get'
     })
   },
+  // 按年份统计分类消费
+  findListTypeTotalCountByYear: function(groupid, year) {
+    return request({
+      url: `/paymoney/findListTypeTotalCountByYear/${groupid}/${year}`,
+      method: 'get'
+    })
+  },
   // 按照年份统计消费
   findSumByYear: function(groupid, year) {
     return request({
@@ -75,8 +82,21 @@ export default {
       method: 'get'
     })
   },
+  // 年度总消费
+  findSumCountAllCost: function(groupid, year) {
+    return request({
+      url: `/paymoney/sumPayMoney/${groupid}/${year}`,
+      method: 'get'
+    })
+  },
 
-  searchOwner: function(data) {
+  searchOwner: function(userid, page, size) {
+    return request({
+      url: `/indivpaymoney/search/${userid}/${page}/${size}`,
+      method: 'get'
+    })
+  },
+  findSearchOwner: function(data) {
     return request({
       url: `/indivpaymoney/findSearch`,
       method: 'post',
@@ -123,16 +143,27 @@ export default {
       method: 'get'
     })
   },
-  findSumCountByTypeOwner: function(userid, typeid) {
+
+  // 按年份统计分类消费
+  findListTypeTotalCountByYearOwner: function(userid, typeid) {
     return request({
-      url: `/indivpaymoney/sum/${userid}/${typeid}`,
+      url: `/indivpaymoney/findListTypeTotalCountByYear/${userid}/${typeid}`,
       method: 'get'
     })
   },
+
   // 按照年份统计消费
   findSumByYearOwner: function(userid, year) {
     return request({
       url: `/indivpaymoney/findListSumCountByYear/${userid}/${year}`,
+      method: 'get'
+    })
+  },
+
+  // 年度总消费
+  findSumCountAllCostOwner: function(userid, year) {
+    return request({
+      url: `/indivpaymoney/sumPayMoney/${userid}/${year}`,
       method: 'get'
     })
   }

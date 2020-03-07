@@ -126,8 +126,13 @@
                     </h4>
                     <bar-chart :barData="barDataGroup" v-if="barDataGroup"></bar-chart>
                     <div v-else class="nodata">暂无统计信息……</div>
-                    <h4>按分类统计</h4>
-                    <pie-chart :pieData="pieDataGroup" v-if="pieDataGroup && sumCount"></pie-chart>
+                    <h4>按分类统计
+                        <div>
+                        <el-date-picker style="width: 90px" v-model="selectedYearType" :clearable="false" :editable="false"
+                            type="year" size="mini" @change="changedYearType" :picker-options="pickerOptions">
+                        </el-date-picker> 年</div>
+                    </h4>
+                    <pie-chart :pieData="pieDataGroup" v-if="pieDataGroup"></pie-chart>
                     <div v-else class="nodata">暂无统计信息……</div>
                 </div>
             </el-tab-pane>
@@ -193,7 +198,8 @@ export default {
             total:0,
             sumCount:0,
             ptUserArr: [],
-            selectedYear: new Date()
+            selectedYear: new Date(),
+            selectedYearType: new Date()
         }
     },
     components: {
@@ -222,6 +228,7 @@ export default {
             this.groupid = this.$route.query.id
             this.search()
             this.getSumCount()
+            this.getSumCountType()
             this.findAllUserById()
             this.getGroupAllCosts()
         }
@@ -281,6 +288,7 @@ export default {
                             this.search()
                             this.getGroupAllCosts()
                             this.getSumCount()
+                            this.getSumCountType()
                         }
                     })
                 } else {
@@ -315,6 +323,7 @@ export default {
                         this.search()
                         this.getGroupAllCosts()
                         this.getSumCount()
+                        this.getSumCountType()
                     }
                 })  
             })  
@@ -348,14 +357,41 @@ export default {
             const year = this.selectedYear.getFullYear()
             paymoneyApi.findSumByYear(this.groupid, year).then(response => {
                if (response.flag && response.data) {
-                    this.barDataGroup.xData = Object.keys(response.data)
-                    this.barDataGroup.yData = Object.values(response.data)
+                   let months = []
+                   let totalPays = []
+                   response.data.map(item => {
+                       months.push(item.monthed)
+                       totalPays.push(item.totalpay)
+                   })
+                    this.barDataGroup.xData = months
+                    this.barDataGroup.yData = totalPays
+                } 
+            })
+        },
+        changedYearType(val) {
+            this.getSumCountType()
+        },
+        getSumCountType() {
+            const year = this.selectedYearType.getFullYear()
+            paymoneyApi.findListTypeTotalCountByYear(this.groupid, year).then(response => {
+               if (response.flag && response.data) {
+                   let types = []
+                   let totalPays = []
+                   response.data.map(item => {
+                       types.push(item.typename)
+                       totalPays.push({
+                            value: item.totalpay || 0,
+                            name: item.typename
+                        })
+                   })
+                    this.pieDataGroup.tit = types
+                    this.pieDataGroup.sData = totalPays
                 } 
             })
         },
         async getGroupAllCosts() {
-            var titArr = []
-            var arrObj = []
+            // var titArr = []
+            // var arrObj = []
             paymoneyApi.findSumCount(this.groupid).then( response => {
                 if (response.flag && response.data) {
                     this.pieDataGroup.sum = response.data
@@ -367,20 +403,20 @@ export default {
                     this.pieDataGroup.subTopic = '本人均摊缴费： ￥' + response.data
                 }
             })
-            var typeList = this.typeList
-            for (let i = 0; i < typeList.length; ++i) {
-                let typeResult = await paymoneyApi.findSumCountByType(this.groupid,typeList[i].id)
-                if (typeResult.flag && typeResult.data) {
-                    titArr.push(typeList[i].typename)
-                    let cur = {
-                        value: typeResult.data || 0,
-                        name: typeList[i].typename
-                    }
-                    arrObj.push(cur)
-                }
-            }
-            this.pieDataGroup.tit = titArr
-            this.pieDataGroup.sData = arrObj
+            // var typeList = this.typeList
+            // for (let i = 0; i < typeList.length; ++i) {
+            //     let typeResult = await paymoneyApi.findSumCountByType(this.groupid,typeList[i].id)
+            //     if (typeResult.flag && typeResult.data) {
+            //         titArr.push(typeList[i].typename)
+            //         let cur = {
+            //             value: typeResult.data || 0,
+            //             name: typeList[i].typename
+            //         }
+            //         arrObj.push(cur)
+            //     }
+            // }
+            // this.pieDataGroup.tit = titArr
+            // this.pieDataGroup.sData = arrObj
         }
     }
         

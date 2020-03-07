@@ -32,7 +32,8 @@
                 <el-table :data="list">
                     <el-table-column prop="typeid" label="缴费类型">
                         <template slot-scope="scope">
-                            {{scope.row.typeid | typeInfo}}
+                            {{scope.row.typename}}
+                            <!-- {{scope.row.typeid | typeInfo}} -->
                         </template>
                     </el-table-column>
                     <el-table-column prop="paycount" label="缴费金额">
@@ -94,19 +95,18 @@
             <el-tab-pane name="2" lazy>
                 <span slot="label"><i class="el-icon-time"></i> 统计</span>
                 <div class="chart-wrapper" v-if="tabItem==='2'">
-                    <h4>
-                        按月份统计
-                        <div>
-                            <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
-                                type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
-                            </el-date-picker> 年
-                        </div>
-                    </h4>
-                    <bar-chart :barData="barDataOwner" v-if="barDataOwner"></bar-chart>
-                    <div v-else class="nodata">暂无统计信息……</div>
+                    <div style="text-align:right">
+                        <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
+                            type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
+                        </el-date-picker>
+                        <small>年度总消费 {{sumCount}} 元</small>
+                    </div>
+                    <h4>按月份统计</h4>
+                    <bar-chart :barData="barDataOwner" v-if="barDataOwner && sumCount"></bar-chart>
+                    <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
                     <h4>按分类统计</h4>
                     <pie-chart :pieData="pieDataOwner" v-if="pieDataOwner && sumCount"></pie-chart>
-                    <div v-else class="nodata">暂无统计信息……</div>
+                    <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
                 </div>
             </el-tab-pane>
         </el-tabs>
@@ -128,15 +128,12 @@ export default {
                 } 
             },
             pieDataOwner: {
-                topic: '个人消费',
-                sum: 0,
-                tit: [],
-                sData: []
+                tit: null,
+                sData: null
             },
             barDataOwner: {
-                topic: '年度总消费统计',
-                xData: [],
-                yData: []
+                xData: null,
+                yData: null
             },
             list:null,
             searchTypeid: '',
@@ -184,6 +181,7 @@ export default {
     created() {
         this.search()
         this.getSumCountOwner()
+        this.getSumCountTypeOwner()
         this.getOwnerAllCosts()
     },
     methods: {
@@ -210,6 +208,7 @@ export default {
                             this.search()
                             this.getOwnerAllCosts()
                             this.getSumCountOwner()
+                            this.getSumCountTypeOwner()
                         }
                     })
                 } else {
@@ -239,20 +238,22 @@ export default {
                         this.search()
                         this.getOwnerAllCosts()
                         this.getSumCountOwner()
+                        this.getSumCountTypeOwner()
                     }
                 })  
             })  
         },
          //分页查询的方法
         search() {
-            paymoneyApi.searchOwner({
-              userid: this.UID,
-              typeid: this.searchTypeid,
-              startTime: this.startTime,
-              endTime: this.endTime,
-              page: this.page,
-              size: this.size
-            }).then( response => {
+            // {
+            //   userid: this.UID,
+            //   typeid: this.searchTypeid,
+            //   startTime: this.startTime,
+            //   endTime: this.endTime,
+            //   page: this.page,
+            //   size: this.size
+            // }
+            paymoneyApi.searchOwner(this.UID, this.page, this.size).then( response => {
                 this.list = response.data.rows //获取列表数据
                 //console.log(response.data.rows)
                 this.total = response.data.total
@@ -264,39 +265,71 @@ export default {
         },
         changedYear(val) {
             this.getSumCountOwner()
+            this.getSumCountTypeOwner()
+            this.getOwnerAllCosts()
         },
         getSumCountOwner() {
             const year = this.selectedYear.getFullYear()
             paymoneyApi.findSumByYearOwner(this.UID, year).then(response => {
                if (response.flag && response.data) {
-                    this.barDataOwner.xData = Object.keys(response.data)
-                    this.barDataOwner.yData = Object.values(response.data)
+                   let months = []
+                   let totalPays = []
+                   response.data.map(item => {
+                       months.push(item.monthed)
+                       totalPays.push(item.totalpay)
+                   })
+                    this.barDataOwner.xData = months
+                    this.barDataOwner.yData = totalPays
                 } 
             })
         },
-        async getOwnerAllCosts() {
-            var titArr = []
-            var arrObjOwner = []
-            paymoneyApi.findSumCountOwner(this.UID).then( response => {
-                if (response.flag && response.data) {
-                    this.pieDataOwner.sum = response.data
-                    this.sumCount = response.data
+        getSumCountTypeOwner() {
+            const year = this.selectedYear.getFullYear()
+            paymoneyApi.findListTypeTotalCountByYearOwner(this.UID, year).then(response => {
+               if (response.flag && response.data) {
+                   let types = []
+                   let totalPays = []
+                   response.data.map(item => {
+                       types.push(item.typename)
+                       totalPays.push({
+                            value: item.totalpay || 0,
+                            name: item.typename
+                        })
+                   })
+                    this.pieDataOwner.tit = types
+                    this.pieDataOwner.sData = totalPays
+                } else {
+                    this.pieDataOwner = null
                 }
             })
-            var typeList = this.typeList
-            for (let i = 0; i < typeList.length; ++i) {
-                let typeResultOwner = await paymoneyApi.findSumCountByTypeOwner(this.UID, typeList[i].id)
-                if (typeResultOwner.flag && typeResultOwner.data) {
-                    titArr.push(typeList[i].typename)
-                    let curO = {
-                        value: typeResultOwner.data || 0,
-                        name: typeList[i].typename
-                    }
-                    arrObjOwner.push(curO)
+        },
+
+        getOwnerAllCosts() {
+            // var titArr = []
+            // var arrObjOwner = []
+            const year = this.selectedYear.getFullYear()
+            paymoneyApi.findSumCountAllCostOwner(this.UID, year).then( response => {
+                if (response.flag && response.data) {
+                    // this.pieDataOwner.sum = response.data
+                    this.sumCount = response.data
+                } else {
+                    this.sumCount = 0
                 }
-            }
-            this.pieDataOwner.tit = titArr
-            this.pieDataOwner.sData = arrObjOwner
+            })
+            // var typeList = this.typeList
+            // for (let i = 0; i < typeList.length; ++i) {
+            //     let typeResultOwner = await paymoneyApi.findSumCountByTypeOwner(this.UID, typeList[i].id)
+            //     if (typeResultOwner.flag && typeResultOwner.data) {
+            //         titArr.push(typeList[i].typename)
+            //         let curO = {
+            //             value: typeResultOwner.data || 0,
+            //             name: typeList[i].typename
+            //         }
+            //         arrObjOwner.push(curO)
+            //     }
+            // }
+            // this.pieDataOwner.tit = titArr
+            // this.pieDataOwner.sData = arrObjOwner
         }
     }
 }

@@ -51,21 +51,21 @@
       </div>
     </v-scroll>
     <template v-if="curTab===1">
-      <div class="chart-wrapper" v-if ="sumCount">
+      <div class="chart-wrapper">
         <group>
-          <popup-picker title="按月份统计" :data="[yearsOptions]" v-model="selectedYear" show-name
+          <popup-picker :title="`年度总消费 ${sumCount} 元`" :data="[yearsOptions]" v-model="selectedYear" show-name
             @on-change="changedYear" placeholder="请选择"></popup-picker>
-          <bar-chart :barData="barDataOwner" v-if="barDataOwner" height="260px" :channel="true"></bar-chart>
-          <div v-else class="nodata">暂无统计信息……</div>
+        </group>
+        <group>
+          <cell title="按月份统计"></cell>
+          <bar-chart :barData="barDataOwner" v-if="barDataOwner && sumCount" height="260px" :channel="true"></bar-chart>
+          <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
         </group>
         <group>
           <cell title="按分类统计"></cell>
           <pie-chart :pieData="pieDataOwner" v-if="pieDataOwner && sumCount" height="400px" :channel="true"></pie-chart>
-          <div v-else class="nodata">暂无统计信息……</div>
+          <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
         </group>
-      </div>
-      <div v-else class="nodata">
-        暂无缴费记录
       </div>
     </template>
     <div class="add-group" @click="$router.push({name:'editOwnerPay'})">
@@ -107,13 +107,10 @@ export default {
       page: 1,
       size: 10,
       pieDataOwner: {
-          topic: '个人缴费',
-          sum: 0,
           tit: [],
           sData: []
       },
       barDataOwner: {
-          topic: '年度总消费统计',
           xData: [],
           yData: []
       },
@@ -134,6 +131,7 @@ export default {
     this.selectedYear.push((new Date().getFullYear()).toString())
     this.setYearsOptions()
     this.getSumCountOwner()
+    this.getSumCountTypeOwner()
     this.search();
     this.getOwnerAllCosts()
   },
@@ -205,6 +203,7 @@ export default {
             messageFun(response)
             if (response.flag) {
               this.getSumCountOwner()
+              this.getSumCountTypeOwner()
               this.search();
               this.getOwnerAllCosts()
             }
@@ -214,6 +213,8 @@ export default {
     },
     changedYear(val) {
         this.getSumCountOwner()
+        this.getSumCountTypeOwner()
+        this.getOwnerAllCosts()
     },
     getSumCountOwner() {
         const year = this.selectedYear[0]
@@ -224,31 +225,51 @@ export default {
             } 
         })
     },
-    async getOwnerAllCosts() {
-        var titArr = []
-        var arrObjOwner = []
-        paymoneyApi.findSumCountOwner(this.UID).then( response => {
+    getSumCountTypeOwner() {
+        const year = this.selectedYear[0]
+        paymoneyApi.findListTypeTotalCountByYearOwner(this.UID, year).then(response => {
             if (response.flag && response.data) {
-                this.pieDataOwner.sum = response.data
+                let types = []
+                let totalPays = []
+                response.data.map(item => {
+                    types.push(item.typename)
+                    totalPays.push({
+                        value: item.totalpay || 0,
+                        name: item.typename
+                    })
+                })
+                this.pieDataOwner.tit = types
+                this.pieDataOwner.sData = totalPays
+            }
+        })
+    },
+    getOwnerAllCosts() {
+        // var titArr = []
+        // var arrObjOwner = []
+        const year = this.selectedYear[0]
+        paymoneyApi.findSumCountAllCostOwner(this.UID, year).then( response => {
+            if (response.flag && response.data) {
                 this.sumCount = response.data
+            } else {
+                this.sumCount = 0
             }
         })
-        var typeList = this.typeList
-        for (let i = 0; i < typeList.length; ++i) {
-            let typeResultOwner = await paymoneyApi.findSumCountByTypeOwner(this.UID, typeList[i].id)
-            if (typeResultOwner.flag && typeResultOwner.data) {
-                titArr.push(typeList[i].typename)
-                let curO = {
-                    value: typeResultOwner.data || 0,
-                    name: typeList[i].typename
-                }
-                arrObjOwner.push(curO)
-            }
-        }
-        this.$nextTick(() => {
-          this.pieDataOwner.tit = titArr
-          this.pieDataOwner.sData = arrObjOwner
-        })
+        // var typeList = this.typeList
+        // for (let i = 0; i < typeList.length; ++i) {
+        //     let typeResultOwner = await paymoneyApi.findSumCountByTypeOwner(this.UID, typeList[i].id)
+        //     if (typeResultOwner.flag && typeResultOwner.data) {
+        //         titArr.push(typeList[i].typename)
+        //         let curO = {
+        //             value: typeResultOwner.data || 0,
+        //             name: typeList[i].typename
+        //         }
+        //         arrObjOwner.push(curO)
+        //     }
+        // }
+        // this.$nextTick(() => {
+        //   this.pieDataOwner.tit = titArr
+        //   this.pieDataOwner.sData = arrObjOwner
+        // })
     }
   }
 };
