@@ -19,8 +19,8 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-date-picker clearable
-                            v-model="searchMap.rangeTime"
+                        <el-date-picker :clearable="false"
+                            v-model="rangeTime"
                             size="small"
                             type="daterange"
                             range-separator="至"
@@ -41,18 +41,18 @@
                 <el-table :data="list">
                     <el-table-column prop="typeid" label="缴费类型">
                         <template slot-scope="scope">
-                            {{scope.row.typeid | typeInfo}}
+                            {{scope.row.typename}}
                         </template>
                     </el-table-column>
                     <el-table-column prop="paycount" label="缴费总额"></el-table-column>
                     <el-table-column prop="payuserid" label="缴费人">
                         <template slot-scope="scope">
-                            {{scope.row.payuserid | uInfo}}
+                            {{scope.row.username}}
                         </template>
                     </el-table-column>
                     <el-table-column prop="shareuserid" label="平摊人">
                         <template slot-scope="scope">
-                            {{scope.row.shareuserid | uInfo}}
+                            {{scope.row.sharename}}
                         </template>
                     </el-table-column>
                     <el-table-column prop="sharemoney" label="均摊金额"></el-table-column>
@@ -117,23 +117,18 @@
             <el-tab-pane name="2" lazy>
                 <span slot="label"><i class="el-icon-time"></i> 统计</span>
                 <div class="chart-wrapper" v-if="tabItem==='2'">
-                    <h4>
-                        按月份统计
-                        <div>
+                    <div style="text-align:right">
                         <el-date-picker style="width: 90px" v-model="selectedYear" :clearable="false" :editable="false"
                             type="year" size="mini" @change="changedYear" :picker-options="pickerOptions">
-                        </el-date-picker> 年</div>
-                    </h4>
-                    <bar-chart :barData="barDataGroup" v-if="barDataGroup"></bar-chart>
-                    <div v-else class="nodata">暂无统计信息……</div>
-                    <h4>按分类统计
-                        <div>
-                        <el-date-picker style="width: 90px" v-model="selectedYearType" :clearable="false" :editable="false"
-                            type="year" size="mini" @change="changedYearType" :picker-options="pickerOptions">
-                        </el-date-picker> 年</div>
-                    </h4>
-                    <pie-chart :pieData="pieDataGroup" v-if="pieDataGroup"></pie-chart>
-                    <div v-else class="nodata">暂无统计信息……</div>
+                        </el-date-picker>
+                        <small>年度群组总消费 {{sumCount}} 元，其中，本人均摊消费 {{personSumCount}} 元</small>
+                    </div>
+                    <h4>按月份统计</h4>
+                    <bar-chart :barData="barDataGroup" v-if="barDataGroup && sumCount"></bar-chart>
+                    <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
+                    <h4>按分类统计</h4>
+                    <pie-chart :pieData="pieDataGroup" v-if="pieDataGroup && sumCount"></pie-chart>
+                    <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
                 </div>
             </el-tab-pane>
         </el-tabs>
@@ -145,7 +140,7 @@ import paymoneyApi from "@/api/paymoney"
 import groupApi from "@/api/group"
 import PieChart from '@/components/ECharts/PieChart'
 import BarChart from '@/components/ECharts/BarChart'
-import { arrToStr, strToArr } from '@/utils'
+import { arrToStr, strToArr, dateTimeFormatter } from '@/utils'
 
 export default {
     data() {
@@ -158,14 +153,14 @@ export default {
             },
             groupid: '',
             pieDataGroup: {
-                topic: '当前群组消费',
-                subTopic: '本人均摊消费： ￥0',
-                sum: 0,
+                // topic: '当前群组消费',
+                // subTopic: '本人均摊消费： ￥0',
+                // sum: 0,
                 tit: [],
                 sData: []
             },
             barDataGroup: {
-                topic: '年度总消费统计',
+                // topic: '年度总消费统计',
                 xData: [],
                 yData: []
             },
@@ -173,9 +168,9 @@ export default {
             searchMap:{
                 typeid: '',
                 payuserid: '',
-                rangeTime: ''
             },
             userListGroup: [],
+            rangeTime: '',
             startTime: '',
             endTime: '',
             moneyList:null,
@@ -197,9 +192,9 @@ export default {
             size:10,
             total:0,
             sumCount:0,
+            personSumCount: 0,
             ptUserArr: [],
-            selectedYear: new Date(),
-            selectedYearType: new Date()
+            selectedYear: new Date()
         }
     },
     components: {
@@ -224,6 +219,7 @@ export default {
         }
     },
     created() {
+        this.setRangeTime()
         if (this.$route.query.id) {
             this.groupid = this.$route.query.id
             this.search()
@@ -234,6 +230,14 @@ export default {
         }
     },
     methods: {
+        setRangeTime () {
+            const today = new Date()
+            const ago = new Date()
+            ago.setMonth(today.getMonth() - 6)
+            this.startTime = dateTimeFormatter(ago, 'yyyy-MM-dd')
+            this.endTime = dateTimeFormatter(today, 'yyyy-MM-dd')
+            this.rangeTime = [ago, today]
+        },
         changeFun(val) {
             if (val) {
                 this.startTime = val[0]
@@ -336,11 +340,11 @@ export default {
               typeid: this.searchMap.typeid,
               startTime: this.startTime,
               endTime: this.endTime,
-              page: this.page,
-              size: this.size
+              pageIndex: this.page,
+              pageSize: this.size
             }).then( response => {
-                this.list = response.data.rows
-                this.total = response.data.total
+                this.list = response.data.rows || []
+                this.total = response.data.total || 0
             })
         },
         currentPageSize(val){
@@ -352,6 +356,8 @@ export default {
         },
         changedYear(val) {
             this.getSumCount()
+            this.getSumCountType()
+            this.getGroupAllCosts()
         },
         getSumCount() {
             const year = this.selectedYear.getFullYear()
@@ -368,11 +374,8 @@ export default {
                 } 
             })
         },
-        changedYearType(val) {
-            this.getSumCountType()
-        },
         getSumCountType() {
-            const year = this.selectedYearType.getFullYear()
+            const year = this.selectedYear.getFullYear()
             paymoneyApi.findListTypeTotalCountByYear(this.groupid, year).then(response => {
                if (response.flag && response.data) {
                    let types = []
@@ -389,18 +392,22 @@ export default {
                 } 
             })
         },
-        async getGroupAllCosts() {
+        getGroupAllCosts() {
             // var titArr = []
             // var arrObj = []
-            paymoneyApi.findSumCount(this.groupid).then( response => {
+            const year = this.selectedYear.getFullYear()
+            paymoneyApi.findSumCountAllCost(this.groupid, year).then( response => {
                 if (response.flag && response.data) {
-                    this.pieDataGroup.sum = response.data
                     this.sumCount = response.data
+                } else {
+                    this.sumCount = 0
                 }
             })
             paymoneyApi.findSumCountShareByUser(this.groupid, this.UID).then( response => {
                 if (response.flag && response.data) {
-                    this.pieDataGroup.subTopic = '本人均摊缴费： ￥' + response.data
+                    this.personSumCount = response.data
+                } else {
+                    this.personSumCount = 0
                 }
             })
             // var typeList = this.typeList

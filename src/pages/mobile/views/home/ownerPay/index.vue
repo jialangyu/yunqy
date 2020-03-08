@@ -15,7 +15,7 @@
             :body-items="[
               {
                 label: '缴费类型',
-                value: item.typeName || item.typeid
+                value: item.typename
               },
               {
                 label: '缴费日期',
@@ -82,6 +82,7 @@ import { messageFun } from "@/utils/msg";
 import VScroll from "@/components/ScrollMore";
 import PieChart from '@/components/ECharts/PieChart'
 import BarChart from '@/components/ECharts/BarChart'
+
 export default {
   components: {
     FormPreview,
@@ -163,8 +164,8 @@ export default {
         typeid: this.searchTypeid,
         startTime: this.startTime,
         endTime: this.endTime,
-        page: this.page,
-        size: this.size
+        pageIndex: this.page,
+        pageSize: this.size
       }).then( response => {
         if(response.flag && response.data) {
           if (response.data.total === 0) {
@@ -172,17 +173,8 @@ export default {
           }
           const oj = response.data.rows
           if(oj.length > 0) {
-            for (let i = 0; i < oj.length; ++i) {
-              if (oj[i].typeid) {
-                queryBase.getType(oj[i].typeid, function(sc, value) {
-                  if (sc) {
-                    oj[i].typeName = value.typename
-                  }
-                })
-              }
-            }
             this.$nextTick(() => {
-              this.pojo = oj.length > this.size ? this.pojo.concat(oj) : oj
+              this.pojo = (response.data.total / this.size > 1) ? this.pojo.concat(oj) : oj
             })
             if (oj.length < this.size) {
               this.scrollData.noFlag = true

@@ -15,15 +15,15 @@
             :body-items="[
               {
                 label: '缴费类型',
-                value: item.typeName || item.typeid
+                value: item.typename || item.typeid
               },
               {
                 label: '缴费人',
-                value: item.payUserName || item.payuserid
+                value: item.username || item.payuserid
               },
               {
                 label: '平摊人',
-                value: item.shareUserName || item.shareuserid
+                value: item.sharename || item.shareuserid
               },
               {
                 label: '平摊金额',
@@ -63,21 +63,21 @@
       </div>
     </v-scroll>
     <template v-if="curTab===1">
-      <div class="chart-wrapper" v-if ="sumCount">
+      <div class="chart-wrapper">
         <group>
-          <popup-picker title="按月份统计" :data="[yearsOptions]" v-model="selectedYear" show-name
+          <popup-picker :title="`年度群组总消费 ${sumCount} 元，其中，本人均摊消费 ${personSumCount} 元`" :data="[yearsOptions]" v-model="selectedYear" show-name
             @on-change="changedYear" placeholder="请选择"></popup-picker>
-          <bar-chart :barData="barData" v-if="barData" height="260px" :channel="true"></bar-chart>
-          <div v-else class="nodata">暂无统计信息……</div>
+        </group>
+        <group>
+          <cell title="按月份统计"></cell>
+          <bar-chart :barData="barData" v-if="barData && sumCount" height="260px" :channel="true"></bar-chart>
+          <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
         </group>
         <group>
           <cell title="按分类统计"></cell>
           <pie-chart :pieData="pieData" v-if="pieData && sumCount" height="400px" :channel="true"></pie-chart>
-          <div v-else class="nodata">暂无统计信息……</div>
+          <div v-else class="nodata">本年度无消费，暂无统计信息……</div>
         </group>
-      </div>
-      <div v-else class="nodata">
-        暂无缴费记录
       </div>
     </template>
     <div class="add-group" @click="$router.push({name:'editGroupPay',query: {gid: groupid}})">
@@ -122,18 +122,15 @@ export default {
       page: 1,
       size: 10,
       pieData: {
-          topic: '当前群组缴费',
-          subTopic: '本人均摊缴费： ￥0',
-          sum: 0,
           tit: [],
           sData: []
       },
       barData: {
-          topic: '年度总消费统计',
           xData: [],
           yData: []
       },
       sumCount:0,
+      personSumCount: 0,
       selectedYear: [],
       yearsOptions: []
     };
@@ -155,6 +152,7 @@ export default {
     if (this.$route.query.id) {
         this.groupid = this.$route.query.id
         this.getSumCount()
+        this.getSumCountType()
         this.search()
         this.getGroupAllCosts()
     }
@@ -188,8 +186,8 @@ export default {
         typeid: this.searchTypeid,
         startTime: this.startTime,
         endTime: this.endTime,
-        page: this.page,
-        size: this.size
+        pageIndex: this.page,
+        pageSize: this.size
       })
       if(response.flag && response.data) {
         const oj = response.data.rows
@@ -197,37 +195,37 @@ export default {
           this.pojo = []
         }
         if(oj.length > 0) {
-          for (let i = 0; i < oj.length; ++i) {
-            if (oj[i].typeid) {
-              queryBase.getType(oj[i].typeid, function(sc, value) {
-                if (sc) {
-                  oj[i].typeName = value.typename
-                }
-              })
-            }
-            if (oj[i].payuserid) {
-              queryBase.getUser(oj[i].payuserid, function(sc, value) {
-                if (sc) {
-                  oj[i].payUserName = value.username
-                }
-              })
-            }
-            if (oj[i].shareuserid) {
-              var shareArr = strToArr(oj[i].shareuserid)
-              var shareName = this.userList.map((lk, index) => {
-                if (shareArr.indexOf(lk.id) > -1) {
-                  return lk.username
-                }
-              }).filter(item => {
-                if (item) {
-                  return item
-                }
-              })
-              oj[i].shareUserName = arrToStr(shareName)
-            }
-          }
+          // for (let i = 0; i < oj.length; ++i) {
+          //   if (oj[i].typeid) {
+          //     queryBase.getType(oj[i].typeid, function(sc, value) {
+          //       if (sc) {
+          //         oj[i].typeName = value.typename
+          //       }
+          //     })
+          //   }
+          //   if (oj[i].payuserid) {
+          //     queryBase.getUser(oj[i].payuserid, function(sc, value) {
+          //       if (sc) {
+          //         oj[i].payUserName = value.username
+          //       }
+          //     })
+          //   }
+          //   if (oj[i].shareuserid) {
+          //     var shareArr = strToArr(oj[i].shareuserid)
+          //     var shareName = this.userList.map((lk, index) => {
+          //       if (shareArr.indexOf(lk.id) > -1) {
+          //         return lk.username
+          //       }
+          //     }).filter(item => {
+          //       if (item) {
+          //         return item
+          //       }
+          //     })
+          //     oj[i].shareUserName = arrToStr(shareName)
+          //   }
+          // }
           this.$nextTick(() => {
-            this.pojo = oj.length > this.size ? this.pojo.concat(oj) : oj
+            this.pojo = (response.data.total / this.size > 1) ? this.pojo.concat(oj) : oj
           })
           if (oj.length < this.size) {
             this.scrollData.noFlag = true
@@ -247,6 +245,7 @@ export default {
             messageFun(response)
             if (response.flag) {
               this.getSumCount()
+              this.getSumCountType()
               this.search()
               this.getGroupAllCosts()
             }
@@ -256,6 +255,7 @@ export default {
     },
     changedYear(val) {
         this.getSumCount()
+         this.getSumCountType()
     },
     getSumCount() {
         const year = this.selectedYear[0]
@@ -266,36 +266,58 @@ export default {
             } 
         })
     },
+    getSumCountType() {
+        const year = this.selectedYear[0]
+        paymoneyApi.findListTypeTotalCountByYear(this.groupid, year).then(response => {
+            if (response.flag && response.data) {
+                let types = []
+                let totalPays = []
+                response.data.map(item => {
+                    types.push(item.typename)
+                    totalPays.push({
+                        value: item.totalpay || 0,
+                        name: item.typename
+                    })
+                })
+                this.pieData.tit = types
+                this.pieData.sData = totalPays
+            } 
+        })
+    },
     async getGroupAllCosts() {
-      var titArr = []
-      var arrObj = []
-      paymoneyApi.findSumCount(this.groupid).then( response => {
+      // var titArr = []
+      // var arrObj = []
+      const year = this.selectedYear[0]
+      paymoneyApi.findSumCountAllCost(this.groupid, year).then( response => {
           if (response.flag && response.data) {
-              this.pieData.sum = response.data
               this.sumCount = response.data
+          } else {
+              this.sumCount = 0 
           }
       })
       paymoneyApi.findSumCountShareByUser(this.groupid, this.UID).then( response => {
           if (response.flag && response.data) {
-              this.pieData.subTopic = '本人均摊缴费： ￥' + response.data
+              this.personSumCount = response.data
+          } else {
+              this.personSumCount = 0
           }
       })
-      var typeList = this.typeList
-      for (let i = 0; i < typeList.length; ++i) {
-          let typeResult = await paymoneyApi.findSumCountByType(this.groupid,typeList[i].id)
-          if (typeResult.flag && typeResult.data) {
-              titArr.push(typeList[i].typename)
-              let cur = {
-                  value: typeResult.data || 0,
-                  name: typeList[i].typename
-              }
-              arrObj.push(cur)
-          }
-      }
-      this.$nextTick(() => {
-        this.pieData.tit = titArr
-        this.pieData.sData = arrObj
-      })
+      // var typeList = this.typeList
+      // for (let i = 0; i < typeList.length; ++i) {
+      //     let typeResult = await paymoneyApi.findSumCountByType(this.groupid,typeList[i].id)
+      //     if (typeResult.flag && typeResult.data) {
+      //         titArr.push(typeList[i].typename)
+      //         let cur = {
+      //             value: typeResult.data || 0,
+      //             name: typeList[i].typename
+      //         }
+      //         arrObj.push(cur)
+      //     }
+      // }
+      // this.$nextTick(() => {
+      //   this.pieData.tit = titArr
+      //   this.pieData.sData = arrObj
+      // })
     }
   }
 };

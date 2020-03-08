@@ -12,7 +12,7 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-date-picker clearable
+                        <el-date-picker :clearable="false"
                             v-model="rangeTime" size="small"
                             type="daterange"
                             range-separator="至"
@@ -117,6 +117,7 @@
 import paymoneyApi from "@/api/paymoney"
 import PieChart from '@/components/ECharts/PieChart'
 import BarChart from '@/components/ECharts/BarChart'
+import { dateTimeFormatter } from '@/utils'
 
 export default {
     data() {
@@ -179,12 +180,21 @@ export default {
         }
     },
     created() {
+        this.setRangeTime()
         this.search()
         this.getSumCountOwner()
         this.getSumCountTypeOwner()
         this.getOwnerAllCosts()
     },
     methods: {
+        setRangeTime () {
+            const today = new Date()
+            const ago = new Date()
+            ago.setMonth(today.getMonth() - 6)
+            this.startTime = dateTimeFormatter(ago, 'yyyy-MM-dd')
+            this.endTime = dateTimeFormatter(today, 'yyyy-MM-dd')
+            this.rangeTime = [ago, today]
+        },
         changeFun(val) {
             if (val) {
                 this.startTime = val[0]
@@ -245,18 +255,16 @@ export default {
         },
          //分页查询的方法
         search() {
-            // {
-            //   userid: this.UID,
-            //   typeid: this.searchTypeid,
-            //   startTime: this.startTime,
-            //   endTime: this.endTime,
-            //   page: this.page,
-            //   size: this.size
-            // }
-            paymoneyApi.searchOwner(this.UID, this.page, this.size).then( response => {
-                this.list = response.data.rows //获取列表数据
-                //console.log(response.data.rows)
-                this.total = response.data.total
+            paymoneyApi.searchOwner({
+              userid: this.UID,
+              typeid: this.searchTypeid,
+              startTime: this.startTime,
+              endTime: this.endTime,
+              pageIndex: this.page,
+              pageSize: this.size
+            }).then( response => {
+                this.list = response.data.rows || [] //获取列表数据
+                this.total = response.data.total || 0
             })
         },
         currentPageSize(val){

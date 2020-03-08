@@ -38,7 +38,7 @@ export default {
   },
   findSearch: function(data) {
     return request({
-      url: `/paymoney/findSearch`,
+      url: `/paymoney/search`,
       method: 'post',
       data: data
     })
@@ -90,19 +90,20 @@ export default {
     })
   },
 
-  searchOwner: function(userid, page, size) {
+  searchOwner: function(data) {
     return request({
-      url: `/indivpaymoney/search/${userid}/${page}/${size}`,
-      method: 'get'
-    })
-  },
-  findSearchOwner: function(data) {
-    return request({
-      url: `/indivpaymoney/findSearch`,
+      url: `/indivpaymoney/search`,
       method: 'post',
       data: data
     })
   },
+  // findSearchOwner: function(data) {
+  //   return request({
+  //     url: `/indivpaymoney/findSearch`,
+  //     method: 'post',
+  //     data: data
+  //   })
+  // },
   saveOwner: function(pojo) {
     return request({
       url: '/indivpaymoney',
