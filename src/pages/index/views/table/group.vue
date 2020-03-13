@@ -19,15 +19,16 @@
             </el-form-item>
         </el-form>
         <el-table :data="list" style="width: 100%">
+            <el-table-column prop="gid" label="群组号"></el-table-column>
             <el-table-column prop="groupname" label="群组名称"></el-table-column>
             <el-table-column label="创建人">
                 <template slot-scope="scope">
-                    {{scope.row.createuserid | uInfo}}
+                    {{scope.row.createuname}}
                 </template>
             </el-table-column>
             <el-table-column label="群组成员">
                 <template slot-scope="scope">
-                    {{scope.row.groupmembers | uInfo}}
+                    {{scope.row.groupmembersname}}
                 </template>
             </el-table-column>
             <el-table-column prop="createtime" label="创建时间"></el-table-column>
@@ -204,7 +205,11 @@ export default {
         },
         //分页查询的方法
         async search() {
-            let response = await groupApi.search(this.page,this.size)
+            let response = await groupApi.search({
+                userid: this.UID,
+                pageIndex: this.page,
+                pageSize: this.size
+            })
             if (response.flag && response.data) {
                 const $info = response.data.rows
                 if ( $info.length > 0){

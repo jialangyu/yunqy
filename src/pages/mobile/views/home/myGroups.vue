@@ -1,45 +1,55 @@
 <template>
   <box gap="15px">
-    <grid :cols="2" class="projects" v-if="pojo && pojo.length">
-      <grid-item
-        class="projects-item"
-        v-for="(item, index) in pojo"
-        :key="item.index"
-        @click.native="clickCurGroup(item)"
-      >
-        <div class="project-index-header" :style="itemBgStyle(index)">{{item.groupname}}</div>
-        <div class="project-index-content">
-          <div class="top-gm">
-            <span>{{ item.createuserid | uInfo }}</span>
-            <span class="gm-num">
-              <svg-icon icon-class="user"/>
-              {{ item.groupmembers.length }}
-            </span>
+    <v-scroll :onLoadMore="onLoadMore" :dataList="scrollData" :topVal="'100'">
+      <grid :cols="2" class="projects" v-if="pojo && pojo.length">
+        <grid-item
+          class="projects-item"
+          v-for="(item, index) in pojo"
+          :key="item.index"
+          @click.native="clickCurGroup(item)"
+        >
+          <div class="project-index-header" :style="itemBgStyle(index)">{{item.groupname}}</div>
+          <div class="project-index-content">
+            <div class="top-gm">
+              <span>{{ item.createuserid | uInfo }}</span>
+              <span class="gm-num">
+                <svg-icon icon-class="user"/>
+                {{ item.groupmembers.length }}
+              </span>
+            </div>
+            <div class="bot-gm">{{ item.createtime }}</div>
           </div>
-          <div class="bot-gm">{{ item.createtime }}</div>
-        </div>
-      </grid-item>
-    </grid>
-    <div v-else class="nodata">
-      暂无群组数据
-      <br>您可以到 [群组] 中创建或者加入相关群组……
-    </div>
+        </grid-item>
+      </grid>
+      <div v-else class="nodata">
+        暂无群组数据
+        <br>您可以到 [群组] 中创建或者加入相关群组……
+      </div>
+    </v-scroll>
   </box>
 </template>
 
 <script>
 import { Grid, GridItem } from "vux";
-import userApi from "@/api/user";
+import groupApi from "@/api/group";
+import VScroll from "@/components/ScrollMore";
 import { strToArr } from "@/utils";
 
 export default {
   components: {
     Grid,
-    GridItem
+    GridItem,
+    VScroll
   },
   data() {
     return {
-      pojo: {}
+      scrollData:{
+        noFlag: false,
+        loading: false
+      },
+      pojo: [],
+      page: 1,
+      size: 10
     };
   },
   computed: {
@@ -53,21 +63,50 @@ export default {
   methods: {
     findAllGroup() {
       this.$vux.loading.show()
-      userApi.findAllGroup(this.UID).then(response => {
+      groupApi.search({
+          userid: this.UID,
+          pageIndex: this.page,
+          pageSize: this.size
+      }).then(response => {
         setTimeout(() => {
           this.$vux.loading.hide()
         }, 1000)
-        if (response.flag && response.data) {
-          for (let i = 0; i < response.data.length; i++) {
-            response.data[i].groupmembers = strToArr(
-              response.data[i].groupmembers
-            );
+        if(response.flag && response.data) {
+          if (response.data.total === 0) {
+            this.pojo = []
           }
-          this.$nextTick(() => {
-            this.pojo = response.data;
-          })
+          const oj = response.data.rows
+          for (let i = 0; i < oj.length; i++) {
+            oj[i].groupmembers = strToArr(oj[i].groupmembersid);
+          }
+          if(oj.length > 0) {
+            this.$nextTick(() => {
+              this.pojo = (response.data.total / this.size > 1) ? this.pojo.concat(oj) : oj
+            })
+            if (oj.length < this.size) {
+              this.scrollData.noFlag = true
+            }
+          }
+        } else {
+          this.pojo = []
         }
+        this.scrollData.loading = false
+
+        //   this.$nextTick(() => {
+        //     this.pojo = response.data;
+        //   })
+        // }
       });
+    },
+    onLoadMore(done) {
+      var that = this
+      if (!that.scrollData.noFlag) {
+        setTimeout(() => {
+          that.page++;
+          that.findAllGroup()
+          done();
+        }, 10);
+      }
     },
     clickCurGroup(val) {
       sessionStorage.setItem("GROUPName", val.groupname);

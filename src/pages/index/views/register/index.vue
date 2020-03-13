@@ -59,7 +59,10 @@ export default {
         gVerify: ''
       },
       regRules: {
-        username: [{ required: true, message: '请输入您的账号', trigger: 'blur' }],
+        username: [
+          { required: true, message: '请输入您的账号', trigger: 'blur' },
+          { min: 8, message: '账号不少于8位', trigger: 'blur' }
+        ],
         password: [
           { required: true, message: '请输入您的登录密码', trigger: 'blur' },
           { min: 5, message: '密码不少于5位', trigger: 'blur' }

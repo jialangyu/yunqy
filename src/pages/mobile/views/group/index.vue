@@ -1,25 +1,31 @@
 <template>
   <div class="main-con">
     <v-scroll :onLoadMore="onLoadMore" :dataList="scrollData">
-      <group v-for="item in list" :key="item.index">
-        <cell title="群组名称" :value="item.groupname" class="big-font"></cell>
-        <cell title="创建人" :value="item.createuserid | uInfo"></cell>
-        <cell title="备注" :value="item.remark"></cell>
-        <cell title="创建时间" :value="item.createtime"></cell>
-        <flexbox class="group-btn">
-          <template v-if="UID===item.createuserid">
-            <flexbox-item><x-button plain type="warn" @click.native="deleteById(item.id)">删除</x-button></flexbox-item>
-            <flexbox-item><x-button plain type="primary" @click.native="$router.push({name:'editGroup', query: { id:item.id } })">修改</x-button></flexbox-item>
-          </template>
-          <template v-else>
-            <flexbox-item v-if="ifBeyondGroup(item)"><x-button plain type="warn" @click="outById(UID,item.id)">退群</x-button></flexbox-item>
-            <flexbox-item><x-button plain type="primary" @click.native="joinGroup(item.id)" :disabled="ifBeyondGroup(item)">{{ifBeyondGroup(item)?'已加入':'加群'}}</x-button></flexbox-item>
-          </template>
-          <template v-if="UID===item.createuserid || ifBeyondGroup(item)">
-            <flexbox-item><x-button plain type="primary" @click.native="showGroupMemners(item)">查看成员</x-button></flexbox-item>
-          </template>
-        </flexbox>
-      </group>
+      <template v-if="pojo && pojo.length">
+        <group v-for="item in pojo" :key="item.index">
+          <cell title="群组号" :value="item.gid" class="big-font"></cell>
+          <cell title="群组名称" :value="item.groupname" class="big-font"></cell>
+          <cell title="创建人" :value="item.createuname"></cell>
+          <cell title="备注" :value="item.remark"></cell>
+          <cell title="创建时间" :value="item.createtime"></cell>
+          <flexbox class="group-btn">
+            <template v-if="UID===item.createuserid">
+              <flexbox-item><x-button plain type="warn" @click.native="deleteById(item.id)">删除</x-button></flexbox-item>
+              <flexbox-item><x-button plain type="primary" @click.native="$router.push({name:'editGroup', query: { id:item.id } })">修改</x-button></flexbox-item>
+            </template>
+            <template v-else>
+              <flexbox-item v-if="ifBeyondGroup(item)"><x-button plain type="warn" @click="outById(UID,item.id)">退群</x-button></flexbox-item>
+              <flexbox-item><x-button plain type="primary" @click.native="joinGroup(item.id)" :disabled="ifBeyondGroup(item)">{{ifBeyondGroup(item)?'已加入':'加群'}}</x-button></flexbox-item>
+            </template>
+            <template v-if="UID===item.createuserid || ifBeyondGroup(item)">
+              <flexbox-item><x-button plain type="primary" @click.native="showGroupMemners(item)">查看成员</x-button></flexbox-item>
+            </template>
+          </flexbox>
+        </group>
+      </template>
+      <div v-else class="nodata">
+        暂无群组数据
+      </div>
     </v-scroll>
     <div class="add-group" @click="$router.push({name:'editGroup'})">
       <svg-icon icon-class="add" />
@@ -40,7 +46,7 @@ export default {
         noFlag: false,
         loading: false
       },
-      list: [],
+      pojo: [],
       page: 1,
       size: 10
     };
@@ -88,20 +94,29 @@ export default {
     },
     async search() {
       this.$vux.loading.show()
-      let response = await groupApi.search(this.page, this.size);
+      let response = await groupApi.search({
+          userid: this.UID,
+          pageIndex: this.page,
+          pageSize: this.size
+      })
       setTimeout(() => {
         this.$vux.loading.hide()
       }, 1000)
-      if (response.flag && response.data) {
+      if(response.flag && response.data) {
+        if (response.data.total === 0) {
+          this.pojo = []
+        }
         const oj = response.data.rows
         if(oj.length > 0) {
           this.$nextTick(() => {
-            this.list = this.list.concat(oj)
+            this.pojo = (response.data.total / this.size > 1) ? this.pojo.concat(oj) : oj
           })
           if (oj.length < this.size) {
             this.scrollData.noFlag = true
           }
         }
+      } else {
+        this.pojo = []
       }
       this.scrollData.loading = false
     },

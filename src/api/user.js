@@ -64,11 +64,11 @@ export default {
       url: `/user/resetpwd/${id}`,
       method: 'put'
     })
-  },
-  findAllGroup: function (userid) {
-    return request({
-      url: `/user/findAllGroup/${userid}`,
-      method: 'post'
-    })
   }
+  // findAllGroup: function (userid) {
+  //   return request({
+  //     url: `/user/findAllGroup/${userid}`,
+  //     method: 'post'
+  //   })
+  // }
 }

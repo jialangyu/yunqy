@@ -1,10 +1,11 @@
 import request from '@/utils/request'
 
 export default {
-  search: function(page, size) {
+  search: function(data) {
     return request({
-      url: `/group/search/${page}/${size}`,
-      method: 'post'
+      url: `/group/search/`,
+      method: 'post',
+      data: data
     })
   },
   findById: function(id) {
@@ -48,7 +49,7 @@ export default {
       data: dataS
     })
   },
-  outGroup: function(userid,groupid) {
+  outGroup: function(userid, groupid) {
     return request({
       url: `/group/userSignOutGroup/${userid}/${groupid}`,
       method: 'get'

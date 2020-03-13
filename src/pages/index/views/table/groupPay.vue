@@ -17,13 +17,16 @@
 </template>
 
 <script>
-import userApi from "@/api/user"
+import groupApi from "@/api/group"
 import { strToArr } from '@/utils'
 
 export default {
     data() {
         return {
-            pojo:{}
+            pojo:{},
+            page:1,
+            size:1000,
+            total:0
         }
     },
     computed: {
@@ -36,14 +39,23 @@ export default {
     },
     methods: {
         findAllGroup() {
-            userApi.findAllGroup(this.UID).then(response => {
+            groupApi.search({
+                userid: this.UID,
+                pageIndex: this.page,
+                pageSize: this.size
+            }).then(response => {
                 if (response.flag && response.data) {
-                    for(let i = 0; i < response.data.length; i++) {
-                        response.data[i].groupmembers = strToArr(response.data[i].groupmembers)
+                    const $info = response.data.rows
+                    if ( $info.length > 0){
+                        for(let i = 0; i < $info.length; i++) {
+                            $info[i].groupmembers = strToArr($info[i].groupmembersid)
+                        }
+                        this.$nextTick(() => {
+                            this.pojo = $info
+                            this.total = response.data.total
+                        })
+                        
                     }
-                    this.$nextTick(() => {
-                        this.pojo = response.data;
-                    })
                 }
             })
         },

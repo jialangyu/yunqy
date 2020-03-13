@@ -7,7 +7,7 @@
             <span class="svg-container">
               <svg-icon icon-class="user" />
             </span>
-            <x-input title="账" type="text" v-model="regForm.username" placeholder="请输入您的账号" required></x-input>
+            <x-input title="账" type="text" :min="8" v-model="regForm.username" placeholder="请输入您的账号" required></x-input>
           </div>
           <div class="log-item">
             <span class="svg-container">
