@@ -64,8 +64,8 @@
     </v-scroll>
     <template v-if="curTab===1">
       <div class="chart-wrapper">
-        <group>
-          <popup-picker :title="`年度群组总消费 ${sumCount} 元，其中，本人均摊消费 ${personSumCount} 元`" :data="[yearsOptions]" v-model="selectedYear" show-name
+        <group :title="`年度群组总消费 ${sumCount} 元，其中，本人均摊消费 ${personSumCount} 元`">
+          <popup-picker :data="[yearsOptions]" v-model="selectedYear" show-name
             @on-change="changedYear" placeholder="请选择"></popup-picker>
         </group>
         <group>
@@ -261,8 +261,14 @@ export default {
         const year = this.selectedYear[0]
         paymoneyApi.findSumByYear(this.groupid, year).then(response => {
             if (response.flag && response.data) {
-                this.barData.xData = Object.keys(response.data)
-                this.barData.yData = Object.values(response.data)
+                let months = []
+                let totalPays = []
+                response.data.map(item => {
+                    months.push(item.monthed)
+                    totalPays.push(item.totalpay)
+                })
+                this.barData.xData = months
+                this.barData.yData = totalPays
             } 
         })
     },

@@ -109,7 +109,7 @@
 
     <el-dialog title="查找缴费群组" :visible.sync="dialogQueryGroupVisible" :close-on-click-modal="false"
         width="500px">
-        <el-input placeholder="请输入搜素的群组号" v-model="searchGroupGid" @keydown.enter="queryGroupByGid">
+        <el-input placeholder="请输入搜素的群组号" v-model="searchGroupGid" @keydown.enter.native="queryGroupByGid">
             <el-button slot="append" icon="el-icon-search" @click="queryGroupByGid"></el-button>
         </el-input>
         <div v-if="groupResults && groupResults.length">
@@ -210,6 +210,9 @@ export default {
             groupApi.findById(id).then(response => {
                 this.pojo = response.data;
                 this.dialogFormVisible = true
+                this.searchGroupGid = ''
+                this.groupResults = []
+                this.dialogQueryGroupVisible = false
             })
         },
         //根据id删除活动
@@ -227,6 +230,9 @@ export default {
                         });
                     if(response.flag){
                         this.search()
+                        this.searchGroupGid = ''
+                        this.groupResults = []
+                        this.dialogQueryGroupVisible = false
                     }
                 })  
             })  
@@ -272,6 +278,9 @@ export default {
                     });
                     if(response.flag){
                         this.search()
+                        this.searchGroupGid = ''
+                        this.groupResults = []
+                        this.dialogQueryGroupVisible = false
                     }
                 })
             }).catch(err=>{})
@@ -294,6 +303,9 @@ export default {
                         });
                     if(response.flag){
                         this.search()
+                        this.searchGroupGid = ''
+                        this.groupResults = []
+                        this.dialogQueryGroupVisible = false
                     }
                 })  
             })  
@@ -307,11 +319,6 @@ export default {
         // 根据群组号查找群组
         queryGroupByGid() {
             groupApi.searchGroupByGid(this.searchGroupGid).then( response => {
-                this.$message({
-                    showClose: true,
-                    message: response.message,
-                    type: response.flag?'success':'error'
-                });
                 if(response.flag && response.data){
                     this.groupResults = response.data
                 } else {

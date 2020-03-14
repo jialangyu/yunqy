@@ -17,7 +17,7 @@
               <flexbox-item><x-button plain type="primary" @click.native="$router.push({name:'editGroup', query: { id:item.id } })">修改</x-button></flexbox-item>
             </template>
             <template v-else>
-              <flexbox-item v-if="ifBeyondGroup(item)"><x-button plain type="warn" @click="outById(UID,item.id)">退群</x-button></flexbox-item>
+              <flexbox-item v-if="ifBeyondGroup(item)"><x-button plain type="warn" @click.native="outById(UID,item.id)">退群</x-button></flexbox-item>
               <flexbox-item><x-button plain type="primary" @click.native="joinGroup(item.id)" :disabled="ifBeyondGroup(item)">{{ifBeyondGroup(item)?'已加入':'加群'}}</x-button></flexbox-item>
             </template>
             <template v-if="UID===item.createuserid || ifBeyondGroup(item)">

@@ -212,8 +212,14 @@ export default {
         const year = this.selectedYear[0]
         paymoneyApi.findSumByYearOwner(this.UID, year).then(response => {
             if (response.flag && response.data) {
-                this.barDataOwner.xData = Object.keys(response.data)
-                this.barDataOwner.yData = Object.values(response.data)
+                let months = []
+                let totalPays = []
+                response.data.map(item => {
+                    months.push(item.monthed)
+                    totalPays.push(item.totalpay)
+                })
+                this.barDataOwner.xData = months
+                this.barDataOwner.yData = totalPays
             } 
         })
     },
