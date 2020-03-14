@@ -295,7 +295,7 @@ export default {
               this.sumCount = 0 
           }
       })
-      paymoneyApi.findSumCountShareByUser(this.groupid, this.UID).then( response => {
+      paymoneyApi.findSumCountShareByUser(this.groupid, this.UID, year).then( response => {
           if (response.flag && response.data) {
               this.personSumCount = response.data
           } else {

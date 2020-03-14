@@ -1,11 +1,22 @@
 <template>
   <div class="main-con">
-    <div class="search-bar" @click="resultClick">
-        <span><i class="weui-icon-search"></i> 搜索群组号</span>
+    <div class="search-bar">
+      <i class="weui-icon-search search-icon"></i>
+      <input
+        v-model="searchGroupGid"
+        ref="input"
+        class="form-control"
+        autocomplete="off"
+        placeholder="搜索群组号"
+        @keydown.enter="queryGroupByGid"
+        @focus="isFocus=true"
+        @blur="isFocus=false"
+      />
+      <a class="search-clear" @click="clear" v-if="isFocus">取消</a>
     </div>
-    <v-scroll :onLoadMore="onLoadMore" :dataList="scrollData" :topVal="'90'">
-      <template v-if="pojo && pojo.length">
-        <group v-for="item in pojo" :key="item.index">
+    <div class="search-results">
+      <div v-if="groupResults && groupResults.length">
+        <group v-for="item in groupResults" :key="item.index">
           <cell title="群组号" :value="item.gid" class="big-font"></cell>
           <cell title="群组名称" :value="item.groupname" class="big-font"></cell>
           <cell title="创建人" :value="item.createuname"></cell>
@@ -25,41 +36,28 @@
             </template>
           </flexbox>
         </group>
-      </template>
-      <div v-else class="nodata">
-        暂无群组数据
       </div>
-    </v-scroll>
-    <div class="add-group" @click="$router.push({name:'editGroup'})">
-      <svg-icon icon-class="add" />
+      <div v-else class="nodata">暂无符合条件的群组</div>
     </div>
   </div>
 </template>
 
+
 <script>
-import { Flexbox, FlexboxItem, Search } from "vux";
+import { Flexbox, FlexboxItem } from "vux";
 import groupApi from "@/api/group";
 import { strToArr, arrToStr } from "@/utils";
-import { messageFun } from '@/utils/msg'
-import VScroll from "@/components/ScrollMore";
 export default {
+  components: {
+    Flexbox,
+    FlexboxItem
+  },
   data() {
     return {
       searchGroupGid: '',
-      scrollData:{
-        noFlag: false,
-        loading: false
-      },
-      pojo: [],
-      page: 1,
-      size: 10
-    };
-  },
-  components: {
-    Search,
-    Flexbox,
-    FlexboxItem,
-    VScroll
+      groupResults: [],
+      isFocus: false
+    }
   },
   computed: {
     name() {
@@ -69,22 +67,21 @@ export default {
       return this.$store.getters.userid;
     }
   },
-  created() {
-    this.search();
-  },
   methods: {
-    resultClick() {
-      this.$router.push({ name:'searchGroup' })
+    // 根据群组号查找群组
+    queryGroupByGid() {
+      groupApi.searchGroupByGid(this.searchGroupGid).then(response => {
+        if (response.flag && response.data) {
+          this.groupResults = response.data
+        } else {
+          this.groupResults = []
+        }
+      })
     },
-    onLoadMore(done) {
-      var that = this
-      if (!that.scrollData.noFlag) {
-        setTimeout(() => {
-          that.page++;
-          that.search()
-          done();
-        }, 10);
-      }
+    clear() {
+      this.searchGroupGid = ''
+      this.isFocus = true
+      this.groupResults = []
     },
     deleteById(id) {
       this.$vux.confirm.show({
@@ -99,38 +96,6 @@ export default {
           })
         }
       })
-    },
-    async search() {
-      this.$vux.loading.show()
-      let response = await groupApi.search({
-          userid: this.UID,
-          pageIndex: this.page,
-          pageSize: this.size
-      })
-      setTimeout(() => {
-        this.$vux.loading.hide()
-      }, 1000)
-      if(response.flag && response.data) {
-        if (response.data.total === 0) {
-          this.pojo = []
-        }
-        const oj = response.data.rows
-        if(oj.length > 0) {
-          this.$nextTick(() => {
-            this.pojo = (response.data.total / this.size > 1) ? this.pojo.concat(oj) : oj
-          })
-          if (oj.length < this.size) {
-            this.scrollData.noFlag = true
-          }
-        }
-      } else {
-        this.pojo = []
-      }
-      this.scrollData.loading = false
-    },
-    currentPageSize(val) {
-      this.size = val;
-      this.search();
     },
     joinGroup(id) {
       const _this = this
@@ -169,31 +134,51 @@ export default {
         const uarr = strToArr(row.groupmembersid);
         return uarr.indexOf(this.UID) > -1 || false;
       }
-    },
-    showGroupMemners(row) {
-      this.$router.push({name:'groupM', query: { id:row.id, cid:row.createuserid } });
-      sessionStorage.setItem('GROUPName',row.groupname)
     }
   }
-};
+}
 </script>
-
 <style scoped>
-.search-bar{
-  position: fixed;
-  top: 46px;
-  left: 0;
-  right: 0;
+.search-bar {
+  display: flex;
+  margin-top: 6px;
+  justify-content: space-between;
+  position: relative;
   background: #eee;
   color: #666;
-  text-align: center;
-  padding: 10px;
+  overflow: hidden;
+  padding: 6px 10px;
 }
-.search-bar>span{
-  display: inline-block;
-  padding: 8px;
-  width: 95%;
-  background: #fff;
+.search-bar input.form-control {
+  border: none;
+  background: #ffffff;
+  vertical-align: middle;
+  text-align: left;
+  padding-left: 32px;
+  width: 100%;
+  height: 40px;
+  line-height: 40px;
   border-radius: 4px;
+  font-size: 12px;
 }
+.search-bar input.form-control:focus {
+  outline: none;
+  box-shadow: none;
+  border: none;
+}
+.search-icon{
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.search-clear{
+  display: block;
+  width: 40px;
+  text-align: center;
+  padding: 12px 10px;
+  font-size: 14px;
+  color: #09BB07;
+}
+
 </style>

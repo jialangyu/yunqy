@@ -103,6 +103,12 @@ export const constantRouterMap = [
         name: 'groupM',
         component: resolve => require(['../views/group/members'], resolve),
         meta: { active: 'group', title: '群组成员' }
+      },
+      {
+        path: '/group/search',
+        name: 'searchGroup',
+        component: resolve => require(['../views/group/searchGroup'], resolve),
+        meta: { active: 'group', title: '群组成员' }
       }
     ]
   },

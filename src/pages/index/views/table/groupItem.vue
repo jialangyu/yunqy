@@ -19,7 +19,7 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-date-picker :clearable="false"
+                        <el-date-picker
                             v-model="rangeTime"
                             size="small"
                             type="daterange"
@@ -242,6 +242,9 @@ export default {
             if (val) {
                 this.startTime = val[0]
                 this.endTime = val[1]
+            } else {
+                this.startTime = ''
+                this.endTime = ''
             }
         },
         findAllUserById() {
@@ -403,7 +406,7 @@ export default {
                     this.sumCount = 0
                 }
             })
-            paymoneyApi.findSumCountShareByUser(this.groupid, this.UID).then( response => {
+            paymoneyApi.findSumCountShareByUser(this.groupid, this.UID, year).then( response => {
                 if (response.flag && response.data) {
                     this.personSumCount = response.data
                 } else {

@@ -12,7 +12,7 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-date-picker :clearable="false"
+                        <el-date-picker
                             v-model="rangeTime" size="small"
                             type="daterange"
                             range-separator="至"
@@ -199,6 +199,9 @@ export default {
             if (val) {
                 this.startTime = val[0]
                 this.endTime = val[1]
+            } else {
+                this.startTime = ''
+                this.endTime = ''
             }
         },
         //保存新增活动

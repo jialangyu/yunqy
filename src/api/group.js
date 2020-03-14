@@ -8,6 +8,12 @@ export default {
       data: data
     })
   },
+  searchGroupByGid: function(gid) {
+    return request({
+      url: `/group/search/${gid}`,
+      method: 'get'
+    })
+  },
   findById: function(id) {
     return request({
       url: `/group/${id}`,
@@ -55,7 +61,7 @@ export default {
       method: 'get'
     })
   },
-  findAllUserById: function (groupid) {
+  findAllUserById: function(groupid) {
     return request({
       url: `/group/findAllUserById/${groupid}`,
       method: 'post'

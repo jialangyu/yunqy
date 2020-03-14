@@ -56,9 +56,9 @@ export default {
     })
   },
   // 查询某用户在某群组中分摊的总金额
-  findSumCountShareByUser: function(groupid, userid) {
+  findSumCountShareByUser: function(groupid, userid, year) {
     return request({
-      url: `paymoney/sumPayMoneyByUseridAndGroupid/${groupid}/${userid}`,
+      url: `paymoney/shareSumPayMoney/${groupid}/${userid}/${year}`,
       method: 'get'
     })
   },

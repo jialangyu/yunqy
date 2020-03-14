@@ -16,6 +16,7 @@
             </el-form-item>-->
             <el-form-item >
                 <el-button type="primary" size="small" @click="dialogFormVisible = true;pojo={};id=null">新增</el-button>
+                <el-button type="primary" size="small" @click="dialogQueryGroupVisible = true">查找群组</el-button>
             </el-form-item>
         </el-form>
         <el-table :data="list" style="width: 100%">
@@ -105,6 +106,30 @@
             <el-button size="small" type="primary" @click="saveOrUpdate">确 定</el-button>
         </div>
     </el-dialog>
+
+    <el-dialog title="查找缴费群组" :visible.sync="dialogQueryGroupVisible" :close-on-click-modal="false"
+        width="500px">
+        <el-input placeholder="请输入搜素的群组号" v-model="searchGroupGid" @keydown.enter="queryGroupByGid">
+            <el-button slot="append" icon="el-icon-search" @click="queryGroupByGid"></el-button>
+        </el-input>
+        <div v-if="groupResults && groupResults.length">
+            <el-card class="box-card" v-for="o in groupResults" :key="o.deleteById">
+                <h2>{{o.groupname}}<small>({{o.gid}})</small></h2>
+                <p>创建人：{{o.createuname}}</p>
+                <p>创建时间：{{o.createtime}}</p>
+                <p>备注：{{o.remark || '暂无'}}</p>
+                <template v-if="UID===o.createuserid">
+                    <el-button @click="findById(o.id)" type="primary" size="mini">修改</el-button>
+                    <el-button @click="deleteById(o.id)" type="danger" size="mini">删除</el-button>
+                </template>
+                <template v-else>
+                    <el-button @click="joinGroup(o.id)" :disabled="ifBeyondGroup(o)" :type="ifBeyondGroup(o)?'info':'primary'" size="mini">{{ifBeyondGroup(o)?'已加入':'加入群组'}}</el-button>
+                    <el-button v-if="ifBeyondGroup(o)" @click="outById(UID,o.id,true)" type="danger" size="mini">退群</el-button>
+                </template>
+            </el-card>
+        </div>
+        <div v-else class="nodata">暂无搜索结果</div>
+    </el-dialog>
     </div>
 </template>
 
@@ -118,6 +143,9 @@ export default {
             list:null,
             searchMap:{},
             dialogFormVisible :false,
+            dialogQueryGroupVisible: false,
+            groupResults: [],
+            searchGroupGid: '',
             pojo: {
                 groupname: '',
                 grouppwd: ''
@@ -271,10 +299,25 @@ export default {
             })  
         },
         ifBeyondGroup(row) {
-            if (row.groupmembers) {
-                const uarr = strToArr(row.groupmembers)
+            if (row.groupmembersid) {
+                const uarr = strToArr(row.groupmembersid)
                 return uarr.indexOf(this.UID) > -1 || false
             }
+        },
+        // 根据群组号查找群组
+        queryGroupByGid() {
+            groupApi.searchGroupByGid(this.searchGroupGid).then( response => {
+                this.$message({
+                    showClose: true,
+                    message: response.message,
+                    type: response.flag?'success':'error'
+                });
+                if(response.flag && response.data){
+                    this.groupResults = response.data
+                } else {
+                    this.groupResults = []
+                }
+            })
         }
     }
 }
