@@ -30,6 +30,7 @@
           <x-button type="primary" :disabled="sureDisable()" :show-loading="loading" @click.native.prevent="handleReg">注册</x-button>
           <div class="tips">
             <span>已有账号，现在 <router-link class="links" to="/login">去登录</router-link></span>
+            <p>注: 暂不支持密码找回功能~</p>
           </div>
         </div>
       </div>

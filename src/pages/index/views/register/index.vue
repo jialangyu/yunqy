@@ -20,7 +20,7 @@
         <span class="svg-container">
           <svg-icon icon-class="example"></svg-icon>
         </span>
-        <el-input type="text" v-model="regForm.gVerify" maxlength="4" placeholder="请输入验证码"></el-input>
+        <el-input type="text" v-model="regForm.gVerify" :maxlength="4" placeholder="请输入验证码"></el-input>
         <div class="v-code" @click="refreshCode">
           <Identify :identifyCode="identifyCode"></Identify>
         </div>
@@ -32,6 +32,7 @@
       </el-form-item>
       <div class="tips">
         <span>已有账号，现在 <router-link class="links" to="/login">去登录</router-link></span>
+        <p>注: 暂不支持密码找回功能~</p>
       </div>
     </el-form>
     <footer-bar></footer-bar>

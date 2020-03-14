@@ -1,7 +1,7 @@
 <template>
     <div class="log-show">
       <div class="log-body">
-        <p class="log-tit">e缴费管理系统</p>
+        <p class="log-tit">易本浪账</p>
         <group class="log-form">
           <div class="log-item">
             <span class="svg-container">

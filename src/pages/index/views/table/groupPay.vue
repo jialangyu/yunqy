@@ -5,7 +5,7 @@
         <div class="project-index-header" :style="itemBgStyle(index)">{{item.groupname}}</div>
         <div class="project-index-content">
             <div class="top-gm">
-                <span>{{ item.createuserid | uInfo }}</span>
+                <span>{{ item.createuname }}</span>
                 <span class="gm-num"><svg-icon icon-class="user" />{{ item.groupmembers.length }}</span>
             </div>
             <div class="bot-gm">{{ item.createtime }}</div>

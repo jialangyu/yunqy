@@ -32,7 +32,7 @@ new Vue({
   store,
   render: h => h(App),
   created() {
-    this.$store.dispatch('getDictuList')
+    // this.$store.dispatch('getDictuList')
     this.$store.dispatch('getDictType')
   }
 })

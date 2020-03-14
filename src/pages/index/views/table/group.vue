@@ -50,21 +50,24 @@
                             <el-button v-if="ifBeyondGroup(scope.row)" @click="outById(UID,scope.row.id,true)" type="danger" size="mini">退群</el-button>
                         </template>
                     </template>
-                    <el-popover v-if="roles.indexOf('1')>-1 || UID===scope.row.createuserid || ifBeyondGroup(scope.row) && scope.row.userGs"
-                        placement="left-start" width="600" trigger="click">
-                        <el-table :data="scope.row.userGs">
-                            <el-table-column property="username" label="姓名"></el-table-column>
-                            <el-table-column property="telno" label="电话"></el-table-column>
-                            <el-table-column property="addr" label="籍贯"></el-table-column>
-                            <el-table-column property="remark" label="备注"></el-table-column>
-                            <el-table-column label="操作" v-if="UID===scope.row.createuserid">
-                                <template slot-scope="scope2">
-                                    <el-button @click="outById(scope2.row.id,scope.row.id)" type="text" :style="scope.row.createuserid === scope2.row.id ? 'color: #c8c9cc' : 'color: #f56c6c'" :disabled="scope.row.createuserid === scope2.row.id">移除</el-button>
-                                </template>
-                            </el-table-column>
-                        </el-table>
-                        <el-button slot="reference" type="primary" size="mini">查看组员信息</el-button>
-                    </el-popover>
+                    <template v-if="roles.indexOf('1')>-1 || UID===scope.row.createuserid || ifBeyondGroup(scope.row)">
+                        <el-popover ref="popover1"
+                            placement="left-start" width="600" trigger="click">
+                            <el-table :data="scope.row.userGs" v-loading="loadGroupUsers">
+                                <el-table-column property="username" label="姓名"></el-table-column>
+                                <el-table-column property="telno" label="电话"></el-table-column>
+                                <el-table-column property="addr" label="籍贯"></el-table-column>
+                                <el-table-column property="remark" label="备注"></el-table-column>
+                                <el-table-column label="操作" v-if="UID===scope.row.createuserid">
+                                    <template slot-scope="scope2">
+                                        <el-button @click="outById(scope2.row.id,scope.row.id)" type="text" :style="scope.row.createuserid === scope2.row.id ? 'color: #c8c9cc' : 'color: #f56c6c'" :disabled="scope.row.createuserid === scope2.row.id">移除</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                        </el-popover>
+                        <el-button v-popover:popover1 type="primary" size="mini"
+                            @click.native="findAllUserByGroup(scope.row, scope.$index)">查看组员信息</el-button>
+                    </template>
                 </template>
             </el-table-column>
         </el-table>
@@ -141,6 +144,7 @@ export default {
     data() {
         return {
             list:null,
+            loadGroupUsers: false,
             searchMap:{},
             dialogFormVisible :false,
             dialogQueryGroupVisible: false,
@@ -247,18 +251,29 @@ export default {
             if (response.flag && response.data) {
                 const $info = response.data.rows
                 if ( $info.length > 0){
-                    for (let i = 0; i < $info.length; ++i) {
-                        $info[i].userGs = [];
-                        let res = await groupApi.findAllUserById($info[i].id)
-                        if (res.flag && res.data) {
-                            $info[i].userGs = res.data
-                        }
-                    }
+                    // for (let i = 0; i < $info.length; ++i) {
+                    //     $info[i].userGs = [];
+                    //     let res = await groupApi.findAllUserById($info[i].id)
+                    //     if (res.flag && res.data) {
+                    //         $info[i].userGs = res.data
+                    //     }
+                    // }
                     this.list = $info
                     this.total = response.data.total
                 }
             }
         },
+        findAllUserByGroup (row, index) {
+            this.loadGroupUsers = true
+            groupApi.findAllUserById(row.id).then( res => {
+                this.loadGroupUsers = false
+                if (res.flag && res.data) {
+                    this.$set(this.list[index], 'userGs', res.data)
+                    this.$forceUpdate()
+                }
+            })
+        },
+        
         currentPageSize(val){
             this.size = val
             this.search()
